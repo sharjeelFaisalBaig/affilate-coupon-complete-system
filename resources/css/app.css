@@ -1,0 +1,70 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/*
+ * Tailwind's preflight strips all default form-control padding/border
+ * styling, expecting explicit utility classes per element — most of the
+ * admin and public forms only ever added `border-gray-300 shadow-sm`
+ * (colors/shape) without padding, leaving every input/select/textarea
+ * cramped against its own border. This base layer gives every text-like
+ * form control a comfortable default height and consistent focus ring
+ * site-wide; explicit Tailwind padding utilities on individual elements
+ * still win (utilities layer beats base layer), so nothing already
+ * hand-tuned regresses.
+ */
+@layer base {
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']):not([type='hidden']),
+    select,
+    textarea {
+        padding-block: 0.625rem;
+        padding-inline: 0.875rem;
+        border-radius: 0.5rem;
+        border-width: 1px;
+        border-color: var(--color-gray-300);
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    textarea {
+        padding-block: 0.75rem;
+    }
+
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']):not([type='hidden']):focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: var(--color-emerald-500);
+        box-shadow: 0 0 0 1px var(--color-emerald-500);
+    }
+
+    input[type='checkbox'],
+    input[type='radio'] {
+        accent-color: var(--color-emerald-500);
+    }
+}
+
+[data-tab-trigger] {
+    border-bottom: 2px solid transparent;
+    color: var(--color-gray-500);
+}
+
+[data-tab-trigger].is-active {
+    border-bottom-color: var(--color-emerald-500);
+    color: var(--color-emerald-600);
+    font-weight: 600;
+}
+
+/* Flag/ribbon-shaped CTA button, matching reference coupon card buttons. */
+.btn-ribbon {
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%);
+    padding-right: 26px;
+}

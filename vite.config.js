@@ -1,0 +1,37 @@
+import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
+import { bunny } from 'laravel-vite-plugin/fonts';
+import tailwindcss from '@tailwindcss/vite';
+
+export default defineConfig({
+    plugins: [
+        laravel({
+            input: [
+                'resources/css/app.css',
+                'resources/js/app.js',
+                'resources/js/drag-sort.js',
+                'resources/js/offer-form.js',
+                'resources/js/script-injection-form.js',
+                'resources/js/blog-editor.js',
+                'resources/js/faq-builder.js',
+                'resources/js/homepage-section-form.js',
+                'resources/js/homepage-section-picker.js',
+                'resources/js/custom-sections-builder.js',
+                'resources/js/category-cascade.js',
+                'resources/js/ajax-filters.js',
+            ],
+            refresh: true,
+            fonts: [
+                bunny('Instrument Sans', {
+                    weights: [400, 500, 600],
+                }),
+            ],
+        }),
+        tailwindcss(),
+    ],
+    server: {
+        watch: {
+            ignored: ['**/storage/framework/views/**'],
+        },
+    },
+});

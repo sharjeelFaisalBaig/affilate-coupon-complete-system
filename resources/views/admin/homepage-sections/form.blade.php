@@ -1,0 +1,132 @@
+@extends('admin.layouts.app')
+
+@section('title', $section->exists ? 'Edit Homepage Section' : 'Add Homepage Section')
+
+@section('content')
+    <div class="max-w-2xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <form method="POST"
+              action="{{ $section->exists ? route('admin.homepage-sections.update', $section) : route('admin.homepage-sections.store') }}"
+              data-homepage-section-form class="space-y-5">
+            @csrf
+            @if ($section->exists) @method('PUT') @endif
+
+            <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700">Section Title</label>
+                <input type="text" name="title" value="{{ old('title', $section->title) }}" required maxlength="255"
+                       placeholder="e.g. Skincare, Trending Deals, Trending Stores"
+                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                <p class="mt-1 text-xs text-gray-400">Optimal length: ~30 characters.</p>
+            </div>
+
+            <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700">Content Type</label>
+                <div class="flex gap-6">
+                    @foreach (['coupon' => 'Coupon', 'deal' => 'Deal', 'store' => 'Trending Stores'] as $value => $label)
+                        <label class="flex items-center gap-2">
+                            <input type="radio" name="content_type" value="{{ $value }}" data-content-type
+                                   @checked(old('content_type', $section->content_type ?: 'coupon') === $value) required
+                                   class="border-gray-300 text-emerald-500 focus:ring-emerald-500">
+                            <span class="text-sm text-gray-700">{{ $label }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
+            @php
+                $pickerResultsUrl = route('admin.homepage-sections.picker-results');
+                $selectedCoupons = $selectedOffers->where('offer_type', 'coupon')->values();
+                $selectedDeals = $selectedOffers->where('offer_type', 'deal')->values();
+            @endphp
+
+            <div data-picker="coupon" class="hidden">
+                @include('admin.homepage-sections._picker-field', [
+                    'type' => 'coupon',
+                    'inputName' => 'offer_ids',
+                    'label' => 'Select Coupons',
+                    'max' => \App\Models\HomepageSection::MAX_OFFERS,
+                    'selected' => $selectedCoupons->map(fn ($o) => ['id' => $o->id, 'label' => $o->store->name.' — '.$o->title]),
+                ])
+            </div>
+
+            <div data-picker="deal" class="hidden">
+                @include('admin.homepage-sections._picker-field', [
+                    'type' => 'deal',
+                    'inputName' => 'offer_ids',
+                    'label' => 'Select Deals',
+                    'max' => \App\Models\HomepageSection::MAX_OFFERS,
+                    'selected' => $selectedDeals->map(fn ($o) => ['id' => $o->id, 'label' => $o->store->name.' — '.$o->title]),
+                ])
+            </div>
+
+            <div data-picker="store" class="hidden">
+                @include('admin.homepage-sections._picker-field', [
+                    'type' => 'store',
+                    'inputName' => 'store_ids',
+                    'label' => 'Select Stores',
+                    'max' => \App\Models\HomepageSection::MAX_STORES,
+                    'selected' => $selectedStores->map(fn ($s) => ['id' => $s->id, 'label' => $s->name]),
+                ])
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">CTA Label</label>
+                    <input type="text" name="cta_label" value="{{ old('cta_label', $section->cta_label) }}"
+                           placeholder="View All / Show All / Explore All"
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">CTA Link (relative URL)</label>
+                    <input type="text" name="cta_url" value="{{ old('cta_url', $section->cta_url) }}"
+                           placeholder="/coupons or /stores"
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">CTA Target</label>
+                    <select name="cta_target" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        <option value="same_tab" @selected(old('cta_target', $section->cta_target ?? 'same_tab') === 'same_tab')>Same Tab</option>
+                        <option value="new_tab" @selected(old('cta_target', $section->cta_target) === 'new_tab')>New Tab</option>
+                    </select>
+                </div>
+            </div>
+
+            <label class="flex items-center gap-2">
+                <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $section->id ? $section->is_active : true))
+                       class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500">
+                <span class="text-sm text-gray-700">Active (visible on homepage)</span>
+            </label>
+
+            <div class="flex gap-3">
+                <button type="submit" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600">
+                    {{ $section->exists ? 'Save Changes' : 'Create Section' }}
+                </button>
+                <a href="{{ route('admin.homepage-sections.index') }}" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+    {{-- Picker modals live outside the max-w-2xl form column so the overlay covers the full viewport. --}}
+    @include('admin.homepage-sections._picker-modal', [
+        'type' => 'coupon',
+        'title' => 'Select Coupons',
+        'max' => \App\Models\HomepageSection::MAX_OFFERS,
+        'resultsUrl' => $pickerResultsUrl,
+        'showCategory' => true, 'showStore' => true, 'showBadge' => true, 'showSearch' => true,
+    ])
+    @include('admin.homepage-sections._picker-modal', [
+        'type' => 'deal',
+        'title' => 'Select Deals',
+        'max' => \App\Models\HomepageSection::MAX_OFFERS,
+        'resultsUrl' => $pickerResultsUrl,
+        'showCategory' => true, 'showStore' => true, 'showBadge' => true, 'showSearch' => true,
+    ])
+    @include('admin.homepage-sections._picker-modal', [
+        'type' => 'store',
+        'title' => 'Select Stores',
+        'max' => \App\Models\HomepageSection::MAX_STORES,
+        'resultsUrl' => $pickerResultsUrl,
+        'showCategory' => true, 'showStore' => false, 'showBadge' => false, 'showSearch' => true,
+    ])
+@endsection

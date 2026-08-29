@@ -1,0 +1,101 @@
+<?php
+
+use App\Http\Controllers\Admin\AffiliateNetworkController;
+use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\BadgeController;
+use App\Http\Controllers\Admin\BlogCategoryController;
+use App\Http\Controllers\Admin\BlogController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\ContactMessageController;
+use App\Http\Controllers\Admin\ContactPageController;
+use App\Http\Controllers\Admin\CurrencyController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\GeneralSettingController;
+use App\Http\Controllers\Admin\HomepageSectionController;
+use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\OfferController;
+use App\Http\Controllers\Admin\PagesOverviewController;
+use App\Http\Controllers\Admin\PageSettingController;
+use App\Http\Controllers\Admin\PromotionTypeController;
+use App\Http\Controllers\Admin\RegionController;
+use App\Http\Controllers\Admin\RegionSwitchController;
+use App\Http\Controllers\Admin\ScriptInjectionController;
+use App\Http\Controllers\Admin\StaticPageController;
+use App\Http\Controllers\Admin\StoreController;
+use Illuminate\Support\Facades\Route;
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::middleware('guest')->group(function () {
+        Route::get('login', [AuthController::class, 'showLogin'])->name('login');
+        Route::post('login', [AuthController::class, 'login'])->name('login.attempt');
+    });
+
+    Route::middleware(['auth', 'admin.active', 'admin.region'])->group(function () {
+        Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+        Route::post('switch-region', [RegionSwitchController::class, 'switch'])->name('region.switch');
+
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('pages', [PagesOverviewController::class, 'index'])->name('pages-overview.index');
+
+        Route::post('regions/{region}/make-default', [RegionController::class, 'makeDefault'])->name('regions.make-default');
+        Route::post('regions/{region}/toggle-active', [RegionController::class, 'toggleActive'])->name('regions.toggle-active');
+        Route::resource('regions', RegionController::class)->except('show');
+
+        Route::get('menus', [MenuController::class, 'index'])->name('menus.index');
+        Route::get('menus/{menu}', [MenuController::class, 'edit'])->name('menus.edit');
+        Route::post('menus/{menu}/items', [MenuController::class, 'storeItem'])->name('menus.items.store');
+        Route::post('menus/{menu}/items/reorder', [MenuController::class, 'reorderItems'])->name('menus.items.reorder');
+        Route::delete('menus/{menu}/items/{item}', [MenuController::class, 'destroyItem'])->name('menus.items.destroy');
+
+        Route::get('general-settings', [GeneralSettingController::class, 'edit'])->name('general-settings.edit');
+        Route::put('general-settings', [GeneralSettingController::class, 'update'])->name('general-settings.update');
+
+        Route::resource('promotion-types', PromotionTypeController::class)->except('show');
+
+        Route::resource('badges', BadgeController::class)->except('show');
+
+        Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
+        Route::resource('categories', CategoryController::class)->except('show');
+
+        Route::get('stores/classification', [StoreController::class, 'classification'])->name('stores.classification');
+        Route::post('stores/reorder-featured', [StoreController::class, 'reorderFeatured'])->name('stores.reorder-featured');
+        Route::post('stores/reorder-popular', [StoreController::class, 'reorderPopular'])->name('stores.reorder-popular');
+        Route::post('stores/{store}/toggle-active', [StoreController::class, 'toggleActive'])->name('stores.toggle-active');
+        Route::resource('stores', StoreController::class)->except('show');
+
+        Route::post('offers/reorder', [OfferController::class, 'reorder'])->name('offers.reorder');
+        Route::get('offers/store/{store}/order', [OfferController::class, 'manageOrder'])->name('offers.manage-order');
+        Route::resource('offers', OfferController::class)->except('show');
+
+        Route::resource('script-injections', ScriptInjectionController::class)->except('show');
+
+        Route::resource('affiliate-networks', AffiliateNetworkController::class)->except('show');
+
+        Route::resource('currencies', CurrencyController::class)->except('show');
+
+        Route::get('contact-messages', [ContactMessageController::class, 'index'])->name('contact-messages.index');
+        Route::post('contact-messages/{contactMessage}/toggle-read', [ContactMessageController::class, 'markRead'])->name('contact-messages.toggle-read');
+        Route::delete('contact-messages/{contactMessage}', [ContactMessageController::class, 'destroy'])->name('contact-messages.destroy');
+
+        Route::post('blog-categories/reorder', [BlogCategoryController::class, 'reorder'])->name('blog-categories.reorder');
+        Route::resource('blog-categories', BlogCategoryController::class)->except('show');
+
+        Route::resource('blogs', BlogController::class)->except('show');
+
+        Route::resource('static-pages', StaticPageController::class)->except('show');
+
+        Route::post('homepage-sections/reorder', [HomepageSectionController::class, 'reorder'])->name('homepage-sections.reorder');
+        Route::get('homepage-sections/picker-results', [HomepageSectionController::class, 'pickerResults'])->name('homepage-sections.picker-results');
+        Route::resource('homepage-sections', HomepageSectionController::class)->except('show');
+
+        Route::get('page-settings/{pageKey}', [PageSettingController::class, 'edit'])->name('page-settings.edit');
+        Route::put('page-settings/{pageKey}', [PageSettingController::class, 'update'])->name('page-settings.update');
+
+        Route::get('contact-page', [ContactPageController::class, 'edit'])->name('contact-page.edit');
+        Route::post('contact-page/agendas', [ContactPageController::class, 'storeAgenda'])->name('contact-page.agendas.store');
+        Route::put('contact-page/agendas/{agenda}', [ContactPageController::class, 'updateAgenda'])->name('contact-page.agendas.update');
+        Route::delete('contact-page/agendas/{agenda}', [ContactPageController::class, 'destroyAgenda'])->name('contact-page.agendas.destroy');
+        Route::post('contact-page/agendas/reorder', [ContactPageController::class, 'reorderAgendas'])->name('contact-page.agendas.reorder');
+    });
+});
