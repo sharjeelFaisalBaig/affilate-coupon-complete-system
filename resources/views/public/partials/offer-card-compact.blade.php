@@ -3,6 +3,9 @@
 --}}
 @php
     $store = $offer->store;
+    // The promotion's own uploaded thumbnail overrides the store's default
+    // logo for this card only.
+    $thumbnailPath = $offer->image_path ?: $store->logo_path;
     $badgeItems = collect();
     if ($offer->isVerified()) {
         $badgeItems->push(['label' => 'Verified', 'classes' => 'bg-sky-50 text-sky-700', 'check' => true]);
@@ -14,8 +17,8 @@
     $redirectUrl = route('public.offer.redirect', [$region->code, $offer]);
 @endphp
 <div class="flex flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-    @if ($store->logo_path)
-        <img src="{{ Storage::url($store->logo_path) }}" alt="{{ $store->name }}" width="72" height="28" loading="lazy" class="h-7 max-w-[100px] object-contain">
+    @if ($thumbnailPath)
+        <img src="{{ Storage::url($thumbnailPath) }}" alt="{{ $store->name }}" width="72" height="28" loading="lazy" class="h-7 max-w-[100px] object-contain">
     @else
         @include('public.partials.placeholder-image', ['class' => 'h-7 w-16 rounded'])
     @endif

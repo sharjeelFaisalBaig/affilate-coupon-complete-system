@@ -8,12 +8,15 @@
 --}}
 @php
     $store = $offer->store;
+    // The promotion's own uploaded thumbnail overrides the store's default
+    // logo for this card only.
+    $thumbnailPath = $offer->image_path ?: $store->logo_path;
     $redirectUrl = route('public.offer.redirect', [$region->code, $offer]);
 @endphp
 <div class="flex flex-col rounded-xl border border-gray-200 bg-white shadow-sm hover:border-emerald-300 hover:shadow">
     <a href="{{ route('public.store', [$region->code, $store->slug]) }}" class="flex h-48 items-center justify-center border-b border-gray-100 p-6">
-        @if ($store->logo_path)
-            <img src="{{ Storage::url($store->logo_path) }}" alt="{{ $store->name }}" width="160" height="80" loading="lazy" class="max-h-full max-w-full object-contain">
+        @if ($thumbnailPath)
+            <img src="{{ Storage::url($thumbnailPath) }}" alt="{{ $store->name }}" width="160" height="80" loading="lazy" class="max-h-full max-w-full object-contain">
         @else
             @include('public.partials.placeholder-image', ['class' => 'h-20 w-20 rounded', 'iconClass' => 'h-8 w-8'])
         @endif
