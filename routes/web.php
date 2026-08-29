@@ -10,6 +10,7 @@ use App\Http\Controllers\Public\SitemapController;
 use App\Http\Controllers\Public\StaticPageController;
 use App\Http\Controllers\Public\StoreController;
 use App\Http\Controllers\Public\StoreDirectoryController;
+use App\Http\Controllers\Public\SystemController;
 use App\Models\Region;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,11 @@ Route::get('/', function () {
 
 Route::get('sitemap.xml', [SitemapController::class, 'index'])->name('public.sitemap');
 Route::get('robots.txt', [SitemapController::class, 'robots'])->name('public.robots');
+
+// Render's free tier has no SSH/one-off job support, so this is the only
+// way to run `optimize:clear` after a deploy — gated by DEPLOY_TOKEN, not
+// truly open (see SystemController).
+Route::get('system/optimize-clear', [SystemController::class, 'optimizeClear'])->name('system.optimize-clear');
 
 // Admin routes are static prefixes ("admin/...") and must be registered
 // before the dynamic {region} catch-all below — otherwise a request like
