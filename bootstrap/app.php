@@ -25,6 +25,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('admin.login'));
+
+        // Render (like most PaaS) terminates TLS at its edge and forwards
+        // plain HTTP to the container, with the original scheme passed via
+        // X-Forwarded-Proto. Without trusting that header, Laravel thinks
+        // every request is insecure and generates http:// asset/URL links
+        // even on an https:// page — a mixed-content browser block. The
+        // edge IP isn't fixed, so '*' (trust whichever proxy routes here)
+        // is the standard pattern for this kind of platform.
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
