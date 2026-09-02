@@ -13,17 +13,9 @@ class Offer extends Model
 
     protected $fillable = [
         'store_id',
-        'promotion_type_id',
         'offer_type',
         'code',
-        'destination_url',
         'title',
-        'description',
-        'terms',
-        'discount_type',
-        'discount_value',
-        'badge_label',
-        'image_path',
         'is_active',
         'start_date',
         'expiry_date',
@@ -35,7 +27,6 @@ class Offer extends Model
     protected function casts(): array
     {
         return [
-            'discount_value' => 'decimal:2',
             'is_active' => 'boolean',
             'start_date' => 'date',
             'expiry_date' => 'datetime',
@@ -46,17 +37,6 @@ class Offer extends Model
     public function store(): BelongsTo
     {
         return $this->belongsTo(Store::class);
-    }
-
-    /**
-     * A promotion's category is inherited from its store (SRS §9: "Promotions
-     * inherit their Category classification directly from the assigned
-     * Store/Brand entity") — filter/search by `$offer->store->category`,
-     * there is no independent category on the offer itself.
-     */
-    public function promotionType(): BelongsTo
-    {
-        return $this->belongsTo(PromotionType::class);
     }
 
     /**
@@ -74,13 +54,12 @@ class Offer extends Model
     }
 
     /**
-     * Where a click on this offer's CTA should ultimately land: the
-     * admin-configured destination URL if set, else the store's
-     * affiliate URL as a sane fallback.
+     * Where a click on this offer's CTA lands — always the store's own
+     * affiliate URL now; promotions no longer have their own destination.
      */
     public function redirectUrl(): string
     {
-        return $this->destination_url ?: $this->store->affiliate_url;
+        return $this->store->affiliate_url;
     }
 
     public function isExpired(): bool
@@ -112,23 +91,6 @@ class Offer extends Model
         }
 
         return $label;
-    }
-
-    /**
-     * Region-aware display label: flat USD values are converted to the
-     * region's currency, percentage/other discounts render unchanged.
-     */
-    public function displayLabelFor(Region $region): string
-    {
-        if ($this->badge_label) {
-            return $this->badge_label;
-        }
-
-        return match ($this->discount_type) {
-            'flat' => $region->currency->symbol.number_format($region->convertFromUsd((float) $this->discount_value), 0).' Off',
-            'percentage' => rtrim(rtrim(number_format((float) $this->discount_value, 2), '0'), '.').'% Off',
-            default => $this->title,
-        };
     }
 
     /**

@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -16,8 +15,6 @@ class Region extends Model
         'code',
         'name',
         'favicon_path',
-        'currency_id',
-        'conversion_rate_to_usd',
         'head_start_script',
         'head_end_script',
         'body_start_script',
@@ -30,15 +27,9 @@ class Region extends Model
     protected function casts(): array
     {
         return [
-            'conversion_rate_to_usd' => 'decimal:4',
             'is_active' => 'boolean',
             'is_default' => 'boolean',
         ];
-    }
-
-    public function currency(): BelongsTo
-    {
-        return $this->belongsTo(Currency::class);
     }
 
     /**
@@ -116,13 +107,5 @@ class Region extends Model
     public function generalSetting(): HasOne
     {
         return $this->hasOne(GeneralSetting::class);
-    }
-
-    /**
-     * Convert a base-USD amount into this region's currency.
-     */
-    public function convertFromUsd(float $usdAmount): float
-    {
-        return round($usdAmount * (float) $this->conversion_rate_to_usd, 2);
     }
 }

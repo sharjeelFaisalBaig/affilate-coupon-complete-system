@@ -13,10 +13,9 @@ class CategoryController extends Controller
     public function show(Region $region, string $categorySlug): View
     {
         $category = Category::where('region_id', $region->id)->where('type', 'store')->where('slug', $categorySlug)->where('is_active', true)
-            ->with('parent')
             ->firstOrFail();
 
-        $storesQuery = Store::where('region_id', $region->id)->where('category_id', $category->id)->where('is_active', true);
+        $storesQuery = Store::where('region_id', $region->id)->where('category_id', $category->id)->visible();
 
         $stores = (clone $storesQuery)->withCount('offers')->orderBy('name')->paginate(20)->withQueryString();
 
@@ -25,12 +24,8 @@ class CategoryController extends Controller
             ->groupBy(fn (Store $store) => strtoupper(substr($store->name, 0, 1)))
             ->sortKeys();
 
-        $topLevelCategories = Category::where('region_id', $region->id)->where('type', 'store')->where('is_active', true)
-            ->whereNull('parent_id')->orderBy('sort_order')->get();
-
-        $subCategories = $category->parent_id === null
-            ? Category::where('region_id', $region->id)->where('type', 'store')->where('is_active', true)->where('parent_id', $category->id)->orderBy('sort_order')->get()
-            : collect();
+        $allCategories = Category::where('region_id', $region->id)->where('type', 'store')->where('is_active', true)
+            ->orderBy('sort_order')->get();
 
         return view('public.category', [
             'region' => $region,
@@ -38,8 +33,7 @@ class CategoryController extends Controller
             'category' => $category,
             'stores' => $stores,
             'allStoresGrouped' => $allStoresGrouped,
-            'topLevelCategories' => $topLevelCategories,
-            'subCategories' => $subCategories,
+            'allCategories' => $allCategories,
             'seoTitle' => $category->meta_title ?: "Coupons for {$category->name} Stores ".now()->format('Y'),
             'seoDescription' => $category->meta_description ?: "Verified coupon codes and deals for {$category->name} stores in {$region->name}.",
         ]);

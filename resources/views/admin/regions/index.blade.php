@@ -16,7 +16,6 @@
                 <tr>
                     <th class="px-4 py-3">Prefix</th>
                     <th class="px-4 py-3">Name</th>
-                    <th class="px-4 py-3">Currency</th>
                     <th class="px-4 py-3">Status</th>
                     <th class="px-4 py-3">Default</th>
                     <th class="px-4 py-3 text-right">Actions</th>
@@ -27,7 +26,6 @@
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-mono text-gray-700">/{{ $region->code }}</td>
                         <td class="px-4 py-3 font-medium text-gray-900">{{ $region->name }}</td>
-                        <td class="px-4 py-3 text-gray-500">{{ $region->currency?->iso_code }} ({{ $region->currency?->symbol }})</td>
                         <td class="px-4 py-3">
                             @if ($region->is_active)
                                 <span class="rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">Enabled</span>
@@ -63,7 +61,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="px-4 py-6 text-center text-gray-400">No regions yet.</td></tr>
+                    <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">No regions yet.</td></tr>
                 @endforelse
             </tbody>
         </table>

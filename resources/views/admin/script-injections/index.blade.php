@@ -25,7 +25,14 @@
                 @forelse ($injections as $injection)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-medium text-gray-900">{{ $injection->name }}</td>
-                        <td class="px-4 py-3 text-gray-500">{{ $injection->placement === 'head' ? '<head>' : 'Before </body>' }}</td>
+                        <td class="px-4 py-3 text-gray-500">
+                            {{ match ($injection->placement) {
+                                'head_start' => 'Start of <head>',
+                                'head_end' => 'End of <head>',
+                                'body_start' => 'Start of <body>',
+                                'body_end' => 'End of <body>',
+                            } }}
+                        </td>
                         <td class="px-4 py-3 text-gray-500">
                             @if ($injection->target_type === 'all_pages') All Pages
                             @elseif ($injection->target_type === 'specific_pages') {{ $injection->pageTargets->count() }} page type(s)

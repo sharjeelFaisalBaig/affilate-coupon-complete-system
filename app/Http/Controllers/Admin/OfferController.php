@@ -5,15 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\Concerns\GuardsRegionOwnership;
 use App\Http\Controllers\Controller;
 use App\Models\Badge;
-use App\Models\Category;
 use App\Models\Offer;
-use App\Models\PromotionType;
 use App\Models\Region;
 use App\Models\Store;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -22,103 +19,50 @@ class OfferController extends Controller
     use GuardsRegionOwnership;
 
     /**
-     * Global, cross-store listing per the SRS: search across title/
-     * description/code/discount value/store/category/badges, with
-     * category/store/promotion-type/badges/status+expiry filters and 7
-     * sort options. Store-scoped drag-reordering lives separately at
-     * manageOrder() — a single flat list spanning every store can't share
-     * one meaningful sort_order sequence.
+     * Store-scoped only, per the client's simplification: a required Store
+     * filter (auto-selected — the alphabetically-first store that actually
+     * has offers, else the alphabetically-first store overall) plus a
+     * search box and pagination. Drag-reorder (::) is built directly into
+     * this listing rather than a separate manage-order page, since it only
+     * ever makes sense scoped to one store's own sort_order sequence.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         /** @var Region $region */
         $region = $request->attributes->get('activeRegion');
 
-        $query = Offer::with(['store.category', 'badges', 'promotionType'])
-            ->whereHas('store', fn ($q) => $q->where('region_id', $region->id));
+        if ($request->missing('store_id')) {
+            $defaultStore = Store::where('region_id', $region->id)->whereHas('offers')->orderBy('name')->first()
+                ?? Store::where('region_id', $region->id)->orderBy('name')->first();
+
+            if ($defaultStore) {
+                return redirect()->route('admin.offers.index', ['store_id' => $defaultStore->id]);
+            }
+        }
+
+        $stores = Store::where('region_id', $region->id)->orderBy('name')->get();
+        $selectedStore = $request->filled('store_id')
+            ? Store::where('region_id', $region->id)->find($request->integer('store_id'))
+            : null;
+
+        $query = Offer::with('badges')->where('store_id', $selectedStore?->id ?? 0);
 
         if ($request->filled('q')) {
             $search = $request->string('q')->value();
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
                     ->orWhere('code', 'like', "%{$search}%")
-                    ->orWhere('discount_value', 'like', "%{$search}%")
-                    ->orWhereHas('store', fn ($sq) => $sq->where('name', 'like', "%{$search}%"))
-                    ->orWhereHas('store.category', fn ($cq) => $cq->where('name', 'like', "%{$search}%"))
                     ->orWhereHas('badges', fn ($bq) => $bq->where('name', 'like', "%{$search}%"));
             });
         }
 
-        // Promotions inherit their category from the assigned store (SRS
-        // §9) — there is no independent promotion-level category anymore.
-        // Selecting a category filters to stores in that category or any
-        // of its descendant subcategories.
-        if ($request->filled('store_category_id')) {
-            $category = Category::find($request->integer('store_category_id'));
-            if ($category) {
-                $categoryIds = array_merge([$category->id], $category->descendantIds());
-                $query->whereHas('store', fn ($q) => $q->whereIn('category_id', $categoryIds));
-            }
-        }
-
-        if ($request->filled('store_id')) {
-            $query->where('store_id', $request->integer('store_id'));
-        }
-
-        if ($request->filled('promotion_type_id')) {
-            $query->where('promotion_type_id', $request->integer('promotion_type_id'));
-        }
-
-        if ($request->filled('badge_id')) {
-            $query->whereHas('badges', fn ($q) => $q->where('badges.id', $request->integer('badge_id')));
-        }
-
-        match ($request->string('status')->value()) {
-            'active' => $query->where('is_active', true)->where(fn ($q) => $q->whereNull('expiry_date')->orWhere('expiry_date', '>', now())),
-            'expired' => $query->where('expiry_date', '<=', now()),
-            'draft' => $query->where('is_active', false),
-            'published' => $query->where('is_active', true),
-            default => null,
-        };
-
-        match ($request->string('sort')->value()) {
-            'discount_high' => $query->orderByDesc('discount_value'),
-            'discount_low' => $query->orderBy('discount_value'),
-            'most_used' => $query->orderByDesc('clicks'),
-            'most_unused' => $query->orderBy('clicks'),
-            'oldest' => $query->orderBy('created_at'),
-            'expiry' => $query->orderByRaw('expiry_date IS NULL')->orderByDesc('expiry_date'),
-            default => $query->orderByDesc('created_at'),
-        };
-
-        $offers = $query->paginate(20)->withQueryString();
-
-        $stores = Store::where('region_id', $region->id)->orderBy('name')->get();
-        $storeCategories = Category::where('region_id', $region->id)->where('type', 'store')->orderBy('name')->get(['id', 'parent_id', 'name']);
-        $promotionTypes = PromotionType::where('region_id', $region->id)->orderBy('title')->get();
-        $badges = Badge::where('region_id', $region->id)->orderBy('name')->get();
+        $offers = $query->orderBy('sort_order')->get();
 
         if ($request->header('X-Ajax-Filter')) {
-            return view('admin.offers._results', compact('offers'));
+            return view('admin.offers._results', compact('offers', 'selectedStore'));
         }
 
-        return view('admin.offers.index', compact('offers', 'stores', 'storeCategories', 'promotionTypes', 'badges'));
-    }
-
-    /**
-     * Store-scoped drag-and-drop display-order manager — the previous
-     * index() behavior, kept as its own view since a global multi-store
-     * list can't share one meaningful sort_order sequence.
-     */
-    public function manageOrder(Request $request, Store $store): View
-    {
-        $this->abortUnlessOwnedByActiveRegion($request, $store->region_id);
-
-        $offers = $store->offers()->with('badges')->orderBy('sort_order')->get();
-        $badges = Badge::where('region_id', $store->region_id)->where('is_active', true)->orderBy('name')->get();
-
-        return view('admin.offers.manage-order', compact('store', 'offers', 'badges'));
+        return view('admin.offers.index', compact('offers', 'stores', 'selectedStore'));
     }
 
     public function create(Request $request): View
@@ -135,7 +79,6 @@ class OfferController extends Controller
             'offer' => new Offer(),
             'stores' => $stores,
             'selectedStore' => $selectedStore,
-            'promotionTypes' => PromotionType::where('region_id', $region->id)->orderBy('title')->get(),
             'badges' => Badge::where('region_id', $region->id)->where('is_active', true)->orderBy('name')->get(),
         ]);
     }
@@ -151,14 +94,10 @@ class OfferController extends Controller
         unset($data['badge_ids']);
         $data['sort_order'] = $store->offers()->max('sort_order') + 1;
 
-        if ($request->hasFile('image')) {
-            $data['image_path'] = $request->file('image')->store('offers', 'public');
-        }
-
         $offer = Offer::create($data);
         $offer->badges()->sync($badgeIds);
 
-        return redirect()->route('admin.offers.index')->with('status', 'Offer created.');
+        return redirect()->route('admin.offers.index', ['store_id' => $store->id])->with('status', 'Offer created.');
     }
 
     public function edit(Request $request, Offer $offer): View
@@ -172,7 +111,6 @@ class OfferController extends Controller
             'offer' => $offer,
             'stores' => Store::where('region_id', $region->id)->orderBy('name')->get(),
             'selectedStore' => $offer->store,
-            'promotionTypes' => PromotionType::where('region_id', $region->id)->orderBy('title')->get(),
             'badges' => Badge::where('region_id', $region->id)->where('is_active', true)->orderBy('name')->get(),
         ]);
     }
@@ -188,43 +126,32 @@ class OfferController extends Controller
         $badgeIds = $data['badge_ids'];
         unset($data['badge_ids']);
 
-        if ($request->hasFile('image')) {
-            if ($offer->image_path) {
-                Storage::disk('public')->delete($offer->image_path);
-            }
-            $data['image_path'] = $request->file('image')->store('offers', 'public');
-        }
-
         $offer->update($data);
         $offer->badges()->sync($badgeIds);
 
-        return redirect()->route('admin.offers.index')->with('status', 'Offer updated.');
+        return redirect()->route('admin.offers.index', ['store_id' => $offer->store_id])->with('status', 'Offer updated.');
     }
 
     public function destroy(Request $request, Offer $offer): RedirectResponse
     {
         $this->guardOffer($request, $offer);
-
-        if ($offer->image_path) {
-            Storage::disk('public')->delete($offer->image_path);
-        }
+        $storeId = $offer->store_id;
 
         $offer->delete();
 
-        return redirect()->route('admin.offers.index')->with('status', 'Offer deleted.');
+        return redirect()->route('admin.offers.index', ['store_id' => $storeId])->with('status', 'Offer deleted.');
     }
 
-    public function reorder(Request $request): Response
+    /**
+     * Store-scoped via the URL segment (not a trusted request-body field —
+     * drag-sort.js's drop handler only ever POSTs {ids}, so validating a
+     * separate store_id in the body never actually worked).
+     */
+    public function reorder(Request $request, Store $store): Response
     {
-        /** @var Region $region */
-        $region = $request->attributes->get('activeRegion');
+        $this->abortUnlessOwnedByActiveRegion($request, $store->region_id);
 
-        $data = $request->validate([
-            'store_id' => ['required', 'exists:stores,id'],
-            'ids' => ['required', 'array'],
-        ]);
-
-        $store = Store::where('region_id', $region->id)->findOrFail($data['store_id']);
+        $data = $request->validate(['ids' => ['required', 'array']]);
 
         foreach ($data['ids'] as $index => $id) {
             Offer::where('id', $id)->where('store_id', $store->id)->update(['sort_order' => $index + 1]);
@@ -244,48 +171,13 @@ class OfferController extends Controller
             'store_id' => ['required', Rule::exists('stores', 'id')->where('region_id', $region->id)],
             'offer_type' => ['required', 'in:coupon,deal'],
             'code' => ['nullable', 'required_if:offer_type,coupon', 'string', 'max:50'],
-            'destination_url' => ['required', 'url', 'max:2048'],
-            'promotion_type_id' => [
-                'required',
-                Rule::exists('promotion_types', 'id')->where('region_id', $region->id),
-            ],
             'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'terms' => ['nullable', 'string'],
-            'discount_value' => ['nullable', 'numeric', 'min:0'],
-            'badge_label' => ['nullable', 'string', 'max:255'],
-            'image' => ['nullable', 'image', 'max:5120'],
             'clicks' => ['nullable', 'integer', 'min:0'],
             'start_date' => ['nullable', 'date'],
             'expiry_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'badge_ids' => ['nullable', 'array', 'max:2'],
             'badge_ids.*' => [Rule::exists('badges', 'id')->where('region_id', $region->id)],
         ]);
-
-        // The Promotion Type's discount_format is the single source of
-        // truth for the dynamic Discount Rate/Value field (SRS §9) —
-        // discount_type is derived here rather than trusting the client's
-        // hidden field, and drives whether discount_value or badge_label
-        // (the "Special Types/Deals: Text input") is required.
-        $discountFormat = PromotionType::find($data['promotion_type_id'])->discount_format;
-        $data['discount_type'] = match ($discountFormat) {
-            'percentage' => 'percentage',
-            'flat' => 'flat',
-            default => 'other',
-        };
-
-        if (in_array($discountFormat, ['deal', 'custom_text'])) {
-            if (blank($request->input('badge_label'))) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
-                    'badge_label' => 'A badge label is required for text-only promotion types (Deals / Special Coupons).',
-                ]);
-            }
-            $data['discount_value'] = null;
-        } elseif (blank($request->input('discount_value'))) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'discount_value' => 'A discount value is required for this promotion type.',
-            ]);
-        }
 
         if ($data['offer_type'] === 'deal') {
             $data['code'] = null;
@@ -295,8 +187,6 @@ class OfferController extends Controller
         $data['is_active'] = $request->boolean('is_active');
 
         if ($offer) {
-            // Admin-editable usage counter (SRS) — only applied on update,
-            // since a brand-new offer always starts at 0.
             $data['clicks'] = $data['clicks'] ?? $offer->clicks;
         } else {
             unset($data['clicks']);

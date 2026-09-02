@@ -16,24 +16,18 @@ class OfferFactory extends Factory
     public function definition(): array
     {
         $offerType = fake()->randomElement(['coupon', 'coupon', 'deal']);
-        $discountType = fake()->randomElement(['flat', 'percentage', 'percentage']);
-        $discountValue = $discountType === 'flat'
-            ? fake()->randomElement([5, 10, 15, 20, 25, 50])
-            : fake()->randomElement([10, 15, 20, 25, 30, 40, 50]);
 
-        $title = $discountType === 'flat'
-            ? "\${$discountValue} Off Storewide"
-            : "{$discountValue}% Off Select Items";
+        $title = fake()->randomElement([
+            fn () => fake()->randomElement([5, 10, 15, 20, 25, 50]).'% Off Select Items',
+            fn () => '$'.fake()->randomElement([5, 10, 15, 20, 25, 50]).' Off Storewide',
+            fn () => 'Free Shipping',
+            fn () => 'Buy 1 Get 1 Free',
+        ])();
 
         return [
             'offer_type' => $offerType,
             'code' => $offerType === 'coupon' ? strtoupper(fake()->bothify('SAVE##??')) : null,
             'title' => $title,
-            'description' => fake()->sentence(12),
-            'terms' => fake()->optional(0.6)->paragraph(),
-            'discount_type' => $discountType,
-            'discount_value' => $discountValue,
-            'badge_label' => null,
             'is_active' => true,
             'start_date' => now()->subDays(fake()->numberBetween(1, 60)),
             'expiry_date' => fake()->optional(0.7)->dateTimeBetween('now', '+3 months'),

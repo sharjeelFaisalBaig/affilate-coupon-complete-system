@@ -12,18 +12,21 @@
             <form data-ajax-filter-form class="flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                 <div>
                     <label class="mb-1 block text-xs font-medium text-gray-500">Category</label>
-                    <div class="flex flex-wrap gap-2">
-                        @include('partials.category-cascade', [
-                            'categories' => $categories,
-                            'paramName' => 'category_id',
-                            'selectedId' => $selectedCategoryId,
-                        ])
-                    </div>
+                    <select name="category_id" class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        <option value="">All Categories</option>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->id }}" @selected($selectedCategoryId == $category->id)>{{ $category->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
                     <label class="mb-1 block text-xs font-medium text-gray-500">Search</label>
                     <input type="search" name="q" value="{{ request('q') }}" placeholder="Search for a store..."
                            class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                </div>
+                <div class="flex flex-col justify-end">
+                    <span class="mb-1 block text-xs font-medium text-transparent select-none" aria-hidden="true">Search</span>
+                    @include('partials.ajax-search-button')
                 </div>
                 @if (request()->hasAny(['q', 'category_id']))
                     <div class="flex flex-col justify-end">

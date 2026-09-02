@@ -128,7 +128,7 @@ class ScriptInjectionController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'placement' => ['required', 'in:head,body_end'],
+            'placement' => ['required', 'in:head_start,head_end,body_start,body_end'],
             'script_content' => ['required', 'string'],
             'target_type' => ['required', 'in:all_pages,specific_pages,specific_stores'],
         ]);

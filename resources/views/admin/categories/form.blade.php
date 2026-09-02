@@ -25,17 +25,6 @@
             </div>
 
             <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700">Parent Category</label>
-                <select name="parent_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    <option value="">— Root (top-level category) —</option>
-                    @foreach ($parentOptions as $option)
-                        <option value="{{ $option->id }}" @selected(old('parent_id', $category->parent_id) == $option->id)>{{ $option->breadcrumbLabel() }}</option>
-                    @endforeach
-                </select>
-                <p class="mt-1 text-xs text-gray-400">Leave blank for a top-level category. Supports up to 4 levels deep.</p>
-            </div>
-
-            <div>
                 <label class="mb-1 block text-sm font-medium text-gray-700">Category Image / Icon</label>
                 @if ($category->icon_path)
                     <img src="{{ Storage::url($category->icon_path) }}" alt="" width="40" height="40" class="mb-2 h-10 w-10 rounded border border-gray-200 object-contain">

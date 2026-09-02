@@ -18,7 +18,8 @@ use Illuminate\View\View;
  * Manages "store" categories — the taxonomy used to organize/browse Stores
  * (see /stores and /category/{slug}). Promotions have no category of their
  * own; they inherit their category from the assigned store (SRS §9), so
- * this is the only category taxonomy in the system.
+ * this is the only category taxonomy in the system. Flat/single-level —
+ * no parent-child concept anywhere.
  */
 class CategoryController extends Controller
 {
@@ -26,20 +27,13 @@ class CategoryController extends Controller
 
     private const TYPE = 'store';
 
-    /**
-     * A category at this depth (0-indexed) can never be chosen as a parent —
-     * doing so would create a 5th level, exceeding the SRS's 4-level cap.
-     */
-    private const MAX_PARENT_DEPTH = 2;
-
     public function index(Request $request): View
     {
         /** @var Region $region */
         $region = $request->attributes->get('activeRegion');
 
         $query = Category::where('region_id', $region->id)->where('type', self::TYPE)
-            ->with('parent')
-            ->withCount(['stores as active_stores_count' => fn ($q) => $q->where('is_active', true), 'children']);
+            ->withCount(['stores as active_stores_count' => fn ($q) => $q->where('is_active', true)]);
 
         if ($request->filled('q')) {
             $search = $request->string('q')->value();
@@ -50,32 +44,15 @@ class CategoryController extends Controller
             $query->where('is_active', $request->string('status') === 'active');
         }
 
-        $categories = $query->orderBy('sort_order')->get();
-
-        if ($request->filled('level')) {
-            $level = $request->integer('level');
-            $categories = $categories->filter(fn ($c) => $c->depth() === $level)->values();
-        }
-
-        $categories = new \Illuminate\Pagination\LengthAwarePaginator(
-            $categories->forPage($request->integer('page', 1), 20),
-            $categories->count(),
-            20,
-            $request->integer('page', 1),
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
+        $categories = $query->orderBy('sort_order')->paginate(20)->withQueryString();
 
         return view('admin.categories.index', compact('categories'));
     }
 
-    public function create(Request $request): View
+    public function create(): View
     {
-        /** @var Region $region */
-        $region = $request->attributes->get('activeRegion');
-
         return view('admin.categories.form', [
             'category' => new Category(),
-            'parentOptions' => $this->parentOptions($region->id),
         ]);
     }
 
@@ -104,7 +81,6 @@ class CategoryController extends Controller
 
         return view('admin.categories.form', [
             'category' => $category,
-            'parentOptions' => $this->parentOptions($category->region_id, $category),
         ]);
     }
 
@@ -142,10 +118,6 @@ class CategoryController extends Controller
             return back()->with('error', 'This category still has stores assigned to it and cannot be deleted. Reassign them first.');
         }
 
-        if ($category->children()->exists()) {
-            return back()->with('error', 'This category still has subcategories and cannot be deleted. Remove or reassign them first.');
-        }
-
         if ($category->icon_path) {
             Storage::disk('public')->delete($category->icon_path);
         }
@@ -174,15 +146,8 @@ class CategoryController extends Controller
         /** @var Region $region */
         $region = $request->attributes->get('activeRegion');
 
-        $excludedParentIds = $category ? array_merge([$category->id], $category->descendantIds()) : [];
-
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'parent_id' => [
-                'nullable',
-                Rule::exists('categories', 'id')->where('region_id', $region->id)->where('type', self::TYPE),
-                Rule::notIn($excludedParentIds),
-            ],
             'slug' => [
                 'nullable', 'string', 'max:255', 'alpha_dash',
                 Rule::unique('categories', 'slug')->where('region_id', $region->id)->where('type', self::TYPE)->ignore($category),
@@ -193,17 +158,6 @@ class CategoryController extends Controller
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string', 'max:255'],
         ]);
-
-        $data['parent_id'] = $request->input('parent_id') ?: null;
-
-        if ($data['parent_id']) {
-            $parent = Category::find($data['parent_id']);
-            if ($parent && $parent->depth() > self::MAX_PARENT_DEPTH) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
-                    'parent_id' => 'That category is already at the maximum depth (4 levels) and cannot have subcategories.',
-                ]);
-            }
-        }
 
         $data['is_active'] = $request->boolean('is_active');
 
@@ -225,23 +179,5 @@ class CategoryController extends Controller
         }
 
         return $slug;
-    }
-
-    /**
-     * Categories already at the max parent depth are excluded — choosing
-     * one as a parent would create a 5th level. When editing, the category
-     * itself and its own descendants are excluded too (no cycles).
-     */
-    private function parentOptions(int $regionId, ?Category $exclude = null)
-    {
-        $excludedIds = $exclude ? array_merge([$exclude->id], $exclude->descendantIds()) : [];
-
-        return Category::where('region_id', $regionId)->where('type', self::TYPE)
-            ->when($excludedIds, fn ($q) => $q->whereNotIn('id', $excludedIds))
-            ->orderBy('name')
-            ->get()
-            ->filter(fn ($c) => $c->depth() <= self::MAX_PARENT_DEPTH)
-            ->sortBy(fn ($c) => $c->breadcrumbLabel())
-            ->values();
     }
 }

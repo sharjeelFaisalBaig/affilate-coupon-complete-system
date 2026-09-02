@@ -20,9 +20,5 @@
            class="mt-4 block w-full rounded-md bg-gray-900 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-gray-800">
             Continue to {{ $store->name }}
         </a>
-
-        @if ($offer->terms)
-            <p class="mt-3 text-xs text-gray-400">{{ $offer->terms }}</p>
-        @endif
     </div>
 </div>

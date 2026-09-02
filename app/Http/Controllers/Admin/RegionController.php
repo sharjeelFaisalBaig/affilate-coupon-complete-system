@@ -5,10 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Badge;
 use App\Models\ContactPageAgenda;
-use App\Models\Currency;
 use App\Models\Menu;
 use App\Models\PageSetting;
-use App\Models\PromotionType;
 use App\Models\Region;
 use App\Models\StaticPage;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +19,7 @@ class RegionController extends Controller
 {
     public function index(): View
     {
-        $regions = Region::with('currency')->withCount([
+        $regions = Region::withCount([
             'categories', 'stores', 'blogs', 'staticPages',
         ])->orderBy('sort_order')->get();
 
@@ -32,7 +30,6 @@ class RegionController extends Controller
     {
         return view('admin.regions.form', [
             'region' => new Region(),
-            'currencies' => Currency::orderBy('name')->get(),
         ]);
     }
 
@@ -60,7 +57,6 @@ class RegionController extends Controller
     {
         return view('admin.regions.form', [
             'region' => $region,
-            'currencies' => Currency::orderBy('name')->get(),
         ]);
     }
 
@@ -155,8 +151,7 @@ class RegionController extends Controller
      */
     private function seedDefaultsForNewRegion(Region $region): void
     {
-        Menu::ensureFixedMenusExist($region);
-        PromotionType::seedSystemDefaultsFor($region);
+        Menu::seedDefaultItemsFor($region);
         Badge::seedDefaultsFor($region);
         ContactPageAgenda::seedDefaultsFor($region);
         StaticPage::seedDefaultsFor($region);
@@ -172,8 +167,6 @@ class RegionController extends Controller
             ],
             'name' => ['required', 'string', 'max:255'],
             'favicon' => ['nullable', 'image', 'max:512'],
-            'currency_id' => ['required', Rule::exists('currencies', 'id')],
-            'conversion_rate_to_usd' => ['required', 'numeric', 'min:0.0001'],
             'head_start_script' => ['nullable', 'string'],
             'head_end_script' => ['nullable', 'string'],
             'body_start_script' => ['nullable', 'string'],

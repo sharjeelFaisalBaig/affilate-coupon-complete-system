@@ -38,14 +38,24 @@ function initSortable(container) {
             el.getAttribute('data-sort-id')
         );
 
-        await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            },
-            body: JSON.stringify({ ids }),
-        });
+        // A decent loading cue while the new order saves — the closest
+        // [data-reorder-loading-target] ancestor (falling back to the
+        // sortable container itself) gets dimmed for the duration.
+        const loadingTarget = container.closest('[data-reorder-loading-target]') || container;
+        loadingTarget.classList.add('opacity-50', 'pointer-events-none', 'transition-opacity');
+
+        try {
+            await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({ ids }),
+            });
+        } finally {
+            loadingTarget.classList.remove('opacity-50', 'pointer-events-none');
+        }
     });
 }
 

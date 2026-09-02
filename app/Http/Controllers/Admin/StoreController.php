@@ -24,14 +24,10 @@ class StoreController extends Controller
         /** @var Region $region */
         $region = $request->attributes->get('activeRegion');
 
-        $query = Store::where('region_id', $region->id)->with('category')->withCount('offers');
+        $query = Store::where('region_id', $region->id)->with('category');
 
         if ($request->filled('category_id')) {
-            $category = Category::where('region_id', $region->id)->where('type', 'store')->find($request->integer('category_id'));
-            if ($category) {
-                $categoryIds = array_merge([$category->id], $category->descendantIds());
-                $query->whereIn('category_id', $categoryIds);
-            }
+            $query->where('category_id', $request->integer('category_id'));
         }
 
         if ($request->filled('status')) {
@@ -40,29 +36,11 @@ class StoreController extends Controller
 
         if ($request->filled('q')) {
             $search = $request->string('q')->value();
-            $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")
-                ->orWhere('title_prefix', 'like', "%{$search}%")
-                ->orWhere('title_suffix', 'like', "%{$search}%")
-                ->orWhere('about', 'like', "%{$search}%"));
-        }
-
-        if ($request->filled('letter')) {
-            $query->where('name', 'like', $request->string('letter').'%');
-        }
-
-        if ($request->filled('promotions')) {
-            match ($request->string('promotions')->value()) {
-                'coupons' => $query->whereHas('coupons', fn ($q) => $q->where('is_active', true)),
-                'deals' => $query->whereHas('deals', fn ($q) => $q->where('is_active', true)),
-                'both' => $query->whereHas('coupons', fn ($q) => $q->where('is_active', true))
-                    ->whereHas('deals', fn ($q) => $q->where('is_active', true)),
-                'none' => $query->whereDoesntHave('offers', fn ($q) => $q->where('is_active', true)),
-                default => null,
-            };
+            $query->where('name', 'like', "%{$search}%");
         }
 
         $stores = $query->orderBy('name')->paginate(20)->withQueryString();
-        $categories = Category::where('region_id', $region->id)->where('type', 'store')->orderBy('name')->get(['id', 'parent_id', 'name']);
+        $categories = Category::where('region_id', $region->id)->where('type', 'store')->orderBy('name')->get(['id', 'name']);
 
         if ($request->header('X-Ajax-Filter')) {
             return view('admin.stores._results', compact('stores'));
@@ -80,10 +58,6 @@ class StoreController extends Controller
         return view('admin.stores.form', [
             'store' => new Store(),
             'categories' => $categories,
-            'competitorOptions' => Store::where('region_id', $region->id)->orderBy('name')->get(),
-            'offerOptions' => collect(),
-            'selectedCompetitorIds' => [],
-            'selectedFeaturedOfferIds' => [],
         ]);
     }
 
@@ -109,12 +83,7 @@ class StoreController extends Controller
             $data['logo_path'] = $request->file('logo')->store('stores', 'public');
         }
 
-        if ($request->hasFile('banner_image')) {
-            $data['banner_image'] = $request->file('banner_image')->store('stores/banners', 'public');
-        }
-
-        $store = Store::create($data);
-        $this->syncSelections($request, $store);
+        Store::create($data);
 
         return redirect()->route('admin.stores.index')->with('status', 'Store created.');
     }
@@ -128,10 +97,6 @@ class StoreController extends Controller
         return view('admin.stores.form', [
             'store' => $store,
             'categories' => $categories,
-            'competitorOptions' => Store::where('region_id', $store->region_id)->where('id', '!=', $store->id)->orderBy('name')->get(),
-            'offerOptions' => $store->offers()->orderBy('title')->get(),
-            'selectedCompetitorIds' => $store->relatedStores->pluck('id')->all(),
-            'selectedFeaturedOfferIds' => $store->featuredOffers->pluck('id')->all(),
         ]);
     }
 
@@ -155,15 +120,7 @@ class StoreController extends Controller
             $data['logo_path'] = $request->file('logo')->store('stores', 'public');
         }
 
-        if ($request->hasFile('banner_image')) {
-            if ($store->banner_image) {
-                Storage::disk('public')->delete($store->banner_image);
-            }
-            $data['banner_image'] = $request->file('banner_image')->store('stores/banners', 'public');
-        }
-
         $store->update($data);
-        $this->syncSelections($request, $store);
 
         return redirect()->route('admin.stores.index')->with('status', 'Store updated.');
     }
@@ -178,9 +135,6 @@ class StoreController extends Controller
 
         if ($store->logo_path) {
             Storage::disk('public')->delete($store->logo_path);
-        }
-        if ($store->banner_image) {
-            Storage::disk('public')->delete($store->banner_image);
         }
 
         $store->delete();
@@ -231,30 +185,6 @@ class StoreController extends Controller
         return response()->noContent();
     }
 
-    /**
-     * Competitor stores (store_related) and the "More Verified Discount
-     * Codes" picker (store_featured_offer) both need to exist before we can
-     * sync them, so this only runs after Store::create()/update().
-     */
-    private function syncSelections(Request $request, Store $store): void
-    {
-        $competitorIds = collect($request->input('competitor_ids', []))
-            ->filter(fn ($id) => Store::where('id', $id)->where('region_id', $store->region_id)->where('id', '!=', $store->id)->exists())
-            ->values();
-
-        $store->relatedStores()->sync(
-            $competitorIds->mapWithKeys(fn ($id, $i) => [$id => ['sort_order' => $i + 1]])->all()
-        );
-
-        $featuredOfferIds = collect($request->input('featured_offer_ids', []))
-            ->filter(fn ($id) => $store->offers()->where('id', $id)->exists())
-            ->values();
-
-        $store->featuredOffers()->sync(
-            $featuredOfferIds->mapWithKeys(fn ($id, $i) => [$id => ['sort_order' => $i + 1]])->all()
-        );
-    }
-
     private function validated(Request $request, ?Store $store = null): array
     {
         /** @var Region $region */
@@ -270,15 +200,13 @@ class StoreController extends Controller
                 'nullable', 'string', 'max:255', 'alpha_dash',
                 Rule::unique('stores', 'slug')->where('region_id', $region->id)->ignore($store),
             ],
-            'title_prefix' => ['nullable', 'string', 'max:100'],
-            'title_suffix' => ['nullable', 'string', 'max:100'],
             'about' => ['nullable', 'string'],
             'website_url' => ['nullable', 'url', 'max:255'],
             'affiliate_url' => ['required', 'url', 'max:255'],
             'expiry_date' => ['nullable', 'date'],
             'star_rating' => ['required', 'numeric', 'min:0', 'max:5'],
             'reviews_count' => ['nullable', 'integer', 'min:0'],
-            'logo' => ['nullable', 'image', 'max:5120'],
+            'logo' => ['nullable', 'image', 'max:5120', 'dimensions:width=200,height=200'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string', 'max:255'],
             'meta_keywords' => ['nullable', 'string', 'max:255'],
@@ -289,29 +217,7 @@ class StoreController extends Controller
             'head_end_script' => ['nullable', 'string'],
             'body_start_script' => ['nullable', 'string'],
             'body_end_script' => ['nullable', 'string'],
-            'faqs' => ['nullable', 'array'],
-            'faqs.*.question' => ['nullable', 'string', 'max:500'],
-            'faqs.*.answer' => ['nullable', 'string'],
-            'banner_heading' => ['nullable', 'string', 'max:255'],
-            'banner_text' => ['nullable', 'string'],
-            'banner_image' => ['nullable', 'image', 'max:5120'],
-            'banner_button_text' => ['nullable', 'string', 'max:100'],
-            'banner_button_url' => ['nullable', 'string', 'max:255'],
-            'curate_right_content' => ['nullable', 'string'],
-            'custom_sections' => ['nullable', 'array'],
-            'custom_sections.*.title' => ['nullable', 'string', 'max:255'],
-            'custom_sections.*.content' => ['nullable', 'string'],
         ]);
-
-        $data['faqs'] = collect($data['faqs'] ?? [])
-            ->filter(fn ($faq) => filled($faq['question'] ?? null) && filled($faq['answer'] ?? null))
-            ->values()
-            ->all();
-
-        $data['custom_sections'] = collect($data['custom_sections'] ?? [])
-            ->filter(fn ($section) => filled($section['title'] ?? null) && filled($section['content'] ?? null))
-            ->values()
-            ->all();
 
         $data['reviews_count'] = $data['reviews_count'] ?? 0;
         $data['is_featured'] = $request->boolean('is_featured');

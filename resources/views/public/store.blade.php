@@ -30,29 +30,9 @@
                     <option value="coupon" @selected(request('filter') === 'coupon')>Coupon Codes ({{ $couponCount }})</option>
                     <option value="deal" @selected(request('filter') === 'deal')>Deals ({{ $dealCount }})</option>
                 </select>
-                <select name="promotion_type" class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    <option value="">All Promotion Types</option>
-                    @foreach ($promotionTypes as $type)
-                        <option value="{{ $type->id }}" @selected(request('promotion_type') == $type->id)>{{ $type->title }}</option>
-                    @endforeach
-                </select>
-                <select name="badge" class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    <option value="">All Badges</option>
-                    @foreach ($badges as $badge)
-                        <option value="{{ $badge->id }}" @selected(request('badge') == $badge->id)>{{ $badge->name }}</option>
-                    @endforeach
-                </select>
-                <select name="sort" class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    <option value="" @selected(!request('sort'))>Default Order</option>
-                    <option value="discount_high" @selected(request('sort') === 'discount_high')>High to Low Discount</option>
-                    <option value="discount_low" @selected(request('sort') === 'discount_low')>Low to High Discount</option>
-                    <option value="most_used" @selected(request('sort') === 'most_used')>Most Used</option>
-                    <option value="most_unused" @selected(request('sort') === 'most_unused')>Most Unused</option>
-                    <option value="oldest" @selected(request('sort') === 'oldest')>Oldest</option>
-                    <option value="expiry" @selected(request('sort') === 'expiry')>Expiry Date</option>
-                </select>
                 <input type="search" name="q" value="{{ request('q') }}" placeholder="Search this store's codes..."
                        class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                @include('partials.ajax-search-button')
             </form>
 
             {{-- Main paginated offer grid — keeps our own page-number pagination, not the reference site's "load more" button --}}
@@ -61,34 +41,7 @@
             </div>
         </div>
 
-        {{-- "Why search for {Store} coupons?" banner --}}
-        @if ($store->banner_heading || $store->banner_text || $store->banner_image)
-            <div class="mt-12 grid grid-cols-1 gap-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm lg:grid-cols-2 lg:items-center">
-                <div>
-                    @if ($store->banner_heading)
-                        <h2 class="text-lg font-bold text-gray-900">{{ $store->banner_heading }}</h2>
-                    @endif
-                    @if ($store->banner_text)
-                        <div class="prose prose-emerald mt-2 max-w-none text-sm">{!! $store->banner_text !!}</div>
-                    @endif
-                    @if ($store->banner_button_text && $store->banner_button_url)
-                        <a href="{{ $store->banner_button_url }}"
-                           class="mt-4 inline-block rounded-md bg-emerald-500 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-600">
-                            {{ $store->banner_button_text }}
-                        </a>
-                    @endif
-                </div>
-                <div class="order-first lg:order-last">
-                    @if ($store->banner_image)
-                        <img src="{{ Storage::url($store->banner_image) }}" alt="{{ $store->banner_heading ?: $store->name }}" width="480" height="270" loading="lazy" class="w-full rounded-lg object-cover">
-                    @else
-                        @include('public.partials.placeholder-image', ['class' => 'aspect-video w-full rounded-lg'])
-                    @endif
-                </div>
-            </div>
-        @endif
-
-        {{-- Store info card: left = logo/title/link/rating/reviews/about, right = auto-calculated savings stats + overview --}}
+        {{-- Store info card: left = logo/title/link/rating/reviews/about, right = auto-calculated savings stats --}}
         <div class="mt-12 grid grid-cols-1 gap-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm lg:grid-cols-2">
             <div>
                 <div class="flex flex-col items-center gap-2 sm:flex-row sm:items-start">
@@ -98,7 +51,7 @@
                         @include('public.partials.placeholder-image', ['class' => 'h-[60px] w-[120px] shrink-0 rounded-lg'])
                     @endif
                     <div class="text-center sm:text-left">
-                        <p class="font-bold text-gray-900">{{ $store->fullTitle() ?: $store->name }}</p>
+                        <p class="font-bold text-gray-900">{{ $store->name }}</p>
                         @if ($store->website_url)
                             <a href="{{ $store->website_url }}" target="_blank" rel="noopener" class="text-xs text-emerald-600 hover:underline">{{ $store->website_url }}</a>
                         @endif
@@ -121,73 +74,9 @@
                 <div class="grid grid-cols-2 gap-3 rounded-lg bg-gray-50 p-4 text-sm">
                     <div><p class="text-xs text-gray-400">Verified Discount Codes</p><p class="font-bold text-gray-900">{{ $savingsStats['verified_codes'] }}</p></div>
                     <div><p class="text-xs text-gray-400">Total Coupons</p><p class="font-bold text-gray-900">{{ $savingsStats['total_coupons'] }}</p></div>
-                    <div><p class="text-xs text-gray-400">Best Discount Today</p><p class="font-bold text-gray-900">{{ $savingsStats['best_discount_today'] }}</p></div>
-                    <div><p class="text-xs text-gray-400">Average Shopper Savings</p><p class="font-bold text-gray-900">{{ $savingsStats['average_savings'] }}</p></div>
                     <div class="col-span-2"><p class="text-xs text-gray-400">Last Coupon Added</p><p class="font-bold text-gray-900">{{ $savingsStats['last_coupon_added'] }}</p></div>
                 </div>
-                @if ($store->curate_right_content)
-                    <div class="prose prose-emerald mt-4 max-w-none text-sm">{!! $store->curate_right_content !!}</div>
-                @endif
             </div>
         </div>
-
-        {{-- More Verified {Store} Discount Codes — admin-curated picks --}}
-        @if ($featuredOffers->isNotEmpty())
-            <div class="mt-12">
-                <h2 class="text-lg font-bold text-gray-900">More Verified {{ $store->name }} Discount Codes</h2>
-                <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    @foreach ($featuredOffers as $offer)
-                    @include('public.partials.offer-card', ['offer' => $offer, 'hideStoreLink' => true])
-                    @endforeach
-                </div>
-            </div>
-        @endif
-
-        {{-- Competitor stores, with live active-code counts --}}
-        @if ($store->relatedStores->isNotEmpty())
-            <div class="mt-12">
-                <h2 class="text-lg font-bold text-gray-900">{{ $store->name }} Competitor Coupon Codes</h2>
-                <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-                    @foreach ($store->relatedStores as $related)
-                        <a href="{{ route('public.store', [$region->code, $related->slug]) }}" class="flex flex-col items-center gap-2 rounded-lg border border-gray-200 p-3 text-center hover:bg-gray-50">
-                            @if ($related->logo_path)
-                                <img src="{{ Storage::url($related->logo_path) }}" alt="{{ $related->name }}" width="64" height="32" loading="lazy" class="h-8 max-w-[64px] object-contain">
-                            @else
-                                @include('public.partials.placeholder-image', ['class' => 'h-8 w-8 rounded-full'])
-                            @endif
-                            <span class="text-xs font-medium text-gray-700">{{ $related->name }}</span>
-                            <span class="text-xs text-gray-400">{{ $related->activeOfferCount }} {{ $related->activeOfferCount === 1 ? 'code' : 'codes' }}</span>
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-        @endif
-
-        {{-- FAQ --}}
-        @if (!empty($store->faqs))
-            <div class="mt-12">
-                <h2 class="text-lg font-bold text-gray-900">{{ $store->name }} Coupon FAQ</h2>
-                <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    @foreach ($store->faqs as $faq)
-                        <details class="rounded-md border border-gray-200 p-3">
-                            <summary class="cursor-pointer text-sm font-medium text-gray-900">{{ $faq['question'] }}</summary>
-                            <p class="mt-2 text-sm text-gray-600">{{ $faq['answer'] }}</p>
-                        </details>
-                    @endforeach
-                </div>
-            </div>
-        @endif
-
-        {{-- Row 9: admin-managed titled rich-text sections --}}
-        @if (!empty($store->custom_sections))
-            <div class="mt-12 space-y-8">
-                @foreach ($store->custom_sections as $section)
-                    <div>
-                        <h2 class="text-lg font-bold text-gray-900">{{ $section['title'] }}</h2>
-                        <div class="prose prose-emerald mt-2 max-w-none text-sm">{!! $section['content'] !!}</div>
-                    </div>
-                @endforeach
-            </div>
-        @endif
     </div>
 @endsection

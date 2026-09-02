@@ -86,6 +86,20 @@ function initCouponCta() {
     });
 }
 
+// [data-deal-cta][data-redirect-url] click behavior: the whole card is the
+// click target (SRS: cards are fully clickable, not just their button), but
+// a deal has no code-reveal modal — it just opens the affiliate link in a
+// new focused tab, same as the plain <a target="_blank"> this replaced.
+function initDealCta() {
+    document.addEventListener('click', (event) => {
+        const card = event.target.closest('[data-deal-cta]');
+        if (!card) return;
+
+        const redirectUrl = card.getAttribute('data-redirect-url');
+        if (redirectUrl) window.open(redirectUrl, '_blank', 'noopener');
+    });
+}
+
 // On load, if the URL carries ?revealOffer=ID (see initCouponCta above),
 // open that offer's modal immediately without requiring another click.
 function initRevealFromQueryString() {
@@ -149,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initToggles();
     initModals();
     initCouponCta();
+    initDealCta();
     initRevealFromQueryString();
     initCopyButtons();
     initTabs();

@@ -8,9 +8,7 @@
 --}}
 @php
     $store = $offer->store;
-    // The promotion's own uploaded thumbnail overrides the store's default
-    // logo for this card only.
-    $thumbnailPath = $offer->image_path ?: $store->logo_path;
+    $thumbnailPath = $store->logo_path;
     $redirectUrl = route('public.offer.redirect', [$region->code, $offer]);
 @endphp
 <div class="flex flex-col rounded-xl border border-gray-200 bg-white shadow-sm hover:border-emerald-300 hover:shadow">

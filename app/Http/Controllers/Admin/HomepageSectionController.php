@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\Concerns\GuardsRegionOwnership;
 use App\Http\Controllers\Controller;
-use App\Models\Badge;
 use App\Models\Category;
 use App\Models\HomepageSection;
 use App\Models\Offer;
@@ -161,7 +160,6 @@ class HomepageSectionController extends Controller
         return [
             'storeOptions' => Store::where('region_id', $regionId)->orderBy('name')->get(['id', 'name']),
             'storeCategoryOptions' => Category::where('region_id', $regionId)->where('type', 'store')->orderBy('name')->get(),
-            'badgeOptions' => Badge::where('region_id', $regionId)->where('is_active', true)->orderBy('name')->get(),
         ];
     }
 
@@ -179,19 +177,11 @@ class HomepageSectionController extends Controller
         $type = $request->string('type')->value();
         abort_unless(in_array($type, ['coupon', 'deal', 'store'], true), 422);
 
-        $categoryIds = null;
-        if ($request->filled('filter_category_id')) {
-            // Promotions inherit their category from the assigned store
-            // (SRS §9) — there is no independent promo-code category.
-            $category = Category::find($request->integer('filter_category_id'));
-            $categoryIds = $category ? array_merge([$category->id], $category->descendantIds()) : [$request->integer('filter_category_id')];
-        }
-
         if ($type === 'store') {
             $query = Store::where('region_id', $region->id)->where('is_active', true);
 
-            if ($categoryIds) {
-                $query->whereIn('category_id', $categoryIds);
+            if ($request->filled('filter_category_id')) {
+                $query->where('category_id', $request->integer('filter_category_id'));
             }
             if ($request->filled('filter_search')) {
                 $query->where('name', 'like', '%'.$request->string('filter_search').'%');
@@ -209,14 +199,8 @@ class HomepageSectionController extends Controller
         $query = Offer::with('store')->where('offer_type', $type)->where('is_active', true)
             ->whereHas('store', fn ($q) => $q->where('region_id', $region->id));
 
-        if ($categoryIds) {
-            $query->whereHas('store', fn ($q) => $q->whereIn('category_id', $categoryIds));
-        }
         if ($request->filled('filter_store_id')) {
             $query->where('store_id', $request->integer('filter_store_id'));
-        }
-        if ($request->filled('filter_badge_id')) {
-            $query->whereHas('badges', fn ($q) => $q->where('badges.id', $request->integer('filter_badge_id')));
         }
         if ($request->filled('filter_search')) {
             $search = $request->string('filter_search')->value();
@@ -229,7 +213,7 @@ class HomepageSectionController extends Controller
         $items = $query->orderBy('title')->limit(100)->get()->map(fn (Offer $offer) => [
             'id' => $offer->id,
             'label' => $offer->store->name.' — '.$offer->title,
-            'meta' => $offer->displayLabelFor($region),
+            'meta' => $offer->title,
         ]);
 
         return response()->json(['items' => $items]);

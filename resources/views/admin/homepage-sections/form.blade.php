@@ -113,14 +113,14 @@
         'title' => 'Select Coupons',
         'max' => \App\Models\HomepageSection::MAX_OFFERS,
         'resultsUrl' => $pickerResultsUrl,
-        'showCategory' => true, 'showStore' => true, 'showBadge' => true, 'showSearch' => true,
+        'showCategory' => false, 'showStore' => true, 'showBadge' => false, 'showSearch' => true,
     ])
     @include('admin.homepage-sections._picker-modal', [
         'type' => 'deal',
         'title' => 'Select Deals',
         'max' => \App\Models\HomepageSection::MAX_OFFERS,
         'resultsUrl' => $pickerResultsUrl,
-        'showCategory' => true, 'showStore' => true, 'showBadge' => true, 'showSearch' => true,
+        'showCategory' => false, 'showStore' => true, 'showBadge' => false, 'showSearch' => true,
     ])
     @include('admin.homepage-sections._picker-modal', [
         'type' => 'store',

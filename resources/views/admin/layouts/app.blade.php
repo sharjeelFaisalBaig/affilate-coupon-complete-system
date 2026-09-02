@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') · Coupons Platform Admin</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/drag-sort.js', 'resources/js/offer-form.js', 'resources/js/script-injection-form.js', 'resources/js/faq-builder.js', 'resources/js/homepage-section-form.js', 'resources/js/homepage-section-picker.js', 'resources/js/category-cascade.js', 'resources/js/ajax-filters.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/drag-sort.js', 'resources/js/offer-form.js', 'resources/js/script-injection-form.js', 'resources/js/faq-builder.js', 'resources/js/homepage-section-form.js', 'resources/js/homepage-section-picker.js', 'resources/js/ajax-filters.js'])
     @stack('head')
 </head>
 <body class="h-full text-gray-900 antialiased">
@@ -36,16 +36,26 @@
                             'label' => 'Catalog',
                             'items' => [
                                 ['label' => 'Categories', 'route' => 'admin.categories.index', 'match' => 'admin.categories.*'],
-                                ['label' => 'Stores', 'route' => 'admin.stores.index', 'match' => 'admin.stores.*'],
-                                ['label' => 'Coupons & Deals', 'route' => 'admin.offers.index', 'match' => 'admin.offers.*'],
+                            ],
+                        ],
+                        [
+                            'label' => 'Promotion',
+                            'items' => [
+                                ['label' => 'Add Promotion', 'route' => 'admin.offers.create', 'match' => 'admin.offers.create'],
+                                ['label' => 'All Promotions', 'route' => 'admin.offers.index', 'match' => ['admin.offers.index', 'admin.offers.edit']],
+                            ],
+                        ],
+                        [
+                            'label' => 'Stores',
+                            'items' => [
+                                ['label' => 'Add Store', 'route' => 'admin.stores.create', 'match' => 'admin.stores.create'],
+                                ['label' => 'All Stores', 'route' => 'admin.stores.index', 'match' => ['admin.stores.index', 'admin.stores.edit', 'admin.stores.classification']],
                             ],
                         ],
                         [
                             'label' => 'Taxonomies',
                             'items' => [
-                                ['label' => 'Promotion Types', 'route' => 'admin.promotion-types.index', 'match' => 'admin.promotion-types.*'],
-                                ['label' => 'Badges', 'route' => 'admin.badges.index', 'match' => 'admin.badges.*'],
-                                ['label' => 'Currencies', 'route' => 'admin.currencies.index', 'match' => 'admin.currencies.*'],
+                                ['label' => 'Coupon Features', 'route' => 'admin.badges.index', 'match' => 'admin.badges.*'],
                             ],
                         ],
                         [
@@ -82,12 +92,25 @@
                                 ['label' => 'Contact Messages', 'route' => 'admin.contact-messages.index', 'match' => 'admin.contact-messages.*'],
                             ],
                         ],
+                        [
+                            'label' => 'Admin',
+                            'items' => [
+                                ['label' => 'Users', 'route' => 'admin.users.index', 'match' => 'admin.users.*', 'can' => 'manage-users'],
+                            ],
+                        ],
                     ];
                 @endphp
 
                 @foreach ($navGroups as $group)
                     @php
-                        $visibleItems = collect($group['items'])->filter(fn ($item) => Route::has($item['route']));
+                        // Route::has() alone only proves the route is registered —
+                        // it says nothing about whether the current user is allowed
+                        // to use it, so a 'can' key (checked via the same Gate the
+                        // route itself is guarded by) is required to actually hide
+                        // Superadmin-only items from a Manager.
+                        $visibleItems = collect($group['items'])->filter(
+                            fn ($item) => Route::has($item['route']) && (! isset($item['can']) || \Illuminate\Support\Facades\Gate::allows($item['can']))
+                        );
                     @endphp
                     @if ($visibleItems->isNotEmpty())
                         <div>
@@ -132,6 +155,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
                         </button>
                         <div id="user-menu" class="hidden absolute right-0 z-50 mt-2 w-40 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
+                            <a href="{{ route('admin.profile.edit') }}" class="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">My Profile</a>
                             <form method="POST" action="{{ route('admin.logout') }}">
                                 @csrf
                                 <button type="submit" class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">Log out</button>

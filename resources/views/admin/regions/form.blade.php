@@ -38,28 +38,6 @@
                 <p class="mt-1 text-xs text-gray-400">* Optimal size: 32x32px, .ico or .png.</p>
             </div>
 
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-700">Region Currency</label>
-                    <select name="currency_id" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                        <option value="">— Select —</option>
-                        @foreach ($currencies as $currency)
-                            <option value="{{ $currency->id }}" @selected(old('currency_id', $region->currency_id) == $currency->id)>
-                                {{ $currency->name }} ({{ $currency->symbol }})
-                            </option>
-                        @endforeach
-                    </select>
-                    <p class="mt-1 text-xs text-gray-400">Controls the currency symbol rendered on coupon/deal cards in this region.</p>
-                </div>
-                <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-700">Conversion Rate to USD</label>
-                    <input type="number" step="0.0001" min="0.0001" name="conversion_rate_to_usd"
-                           value="{{ old('conversion_rate_to_usd', $region->conversion_rate_to_usd ?? 1) }}" required
-                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    <p class="mt-1 text-xs text-gray-400">Used to convert flat-rate USD discounts into this region's currency.</p>
-                </div>
-            </div>
-
             @if ($region->exists)
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">Sort Order</label>

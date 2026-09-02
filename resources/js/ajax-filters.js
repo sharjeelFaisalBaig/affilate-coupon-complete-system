@@ -2,30 +2,34 @@
 // wrapping its filter form and results container in:
 //
 //   <div data-ajax-filter data-base-url="{{ url()->current() }}">
-//     <form data-ajax-filter-form>...filter fields...</form>
+//     <form data-ajax-filter-form>
+//       ...filter fields...
+//       <button type="submit" data-ajax-filter-submit>
+//         <svg data-ajax-filter-spinner class="hidden animate-spin">...</svg>
+//         Search
+//       </button>
+//     </form>
 //     <div data-ajax-filter-results>...initial server-rendered results...</div>
 //   </div>
 //
-// Any change to a filter field (or a click on a pagination link inside the
-// results container) re-fetches the SAME route with an X-Ajax-Filter header
-// so the server can return just the results partial, swaps it in, and
-// pushes the new query string into the URL via history.pushState — so the
-// resulting URL is always shareable/reloadable to the same filtered state,
-// and back/forward navigation restores prior states.
-
-function debounce(fn, wait) {
-    let timeout;
-    return (...args) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => fn(...args), wait);
-    };
-}
+// Filtering only fires on an explicit Search click (or Enter, which submits
+// the form the same way) — never live on keystroke/change — plus a click on
+// a pagination link inside the results container. Each request re-fetches
+// the SAME route with an X-Ajax-Filter header so the server can return just
+// the results partial, swaps it in, and pushes the new query string into
+// the URL via history.pushState — so the resulting URL is always
+// shareable/reloadable to the same filtered state, and back/forward
+// navigation restores prior states. While a request is in flight, the
+// Search button shows a spinner and is disabled.
 
 function initAjaxFilter(root) {
     const form = root.querySelector('[data-ajax-filter-form]');
     const results = root.querySelector('[data-ajax-filter-results]');
     const baseUrl = root.getAttribute('data-base-url') || window.location.pathname;
     if (!form || !results) return;
+
+    const submitBtn = form.querySelector('[data-ajax-filter-submit]');
+    const spinner = submitBtn?.querySelector('[data-ajax-filter-spinner]');
 
     let activeController = null;
 
@@ -43,6 +47,8 @@ function initAjaxFilter(root) {
         activeController = new AbortController();
 
         results.classList.add('opacity-50', 'pointer-events-none', 'transition-opacity');
+        if (submitBtn) submitBtn.disabled = true;
+        spinner?.classList.remove('hidden');
 
         try {
             const response = await fetch(url, {
@@ -66,6 +72,8 @@ function initAjaxFilter(root) {
             }
         } finally {
             results.classList.remove('opacity-50', 'pointer-events-none');
+            if (submitBtn) submitBtn.disabled = false;
+            spinner?.classList.add('hidden');
         }
     }
 
@@ -74,19 +82,6 @@ function initAjaxFilter(root) {
         const url = qs ? `${baseUrl}?${qs}` : baseUrl;
         fetchAndSwap(url, { pushState });
     }
-
-    const debouncedApply = debounce(() => applyFilters(true), 350);
-
-    form.addEventListener('change', (event) => {
-        if (event.target.matches('input[type="text"], input[type="search"]')) return; // debounced below
-        applyFilters(true);
-    });
-
-    form.addEventListener('input', (event) => {
-        if (event.target.matches('input[type="text"], input[type="search"]')) {
-            debouncedApply();
-        }
-    });
 
     form.addEventListener('submit', (event) => {
         event.preventDefault();

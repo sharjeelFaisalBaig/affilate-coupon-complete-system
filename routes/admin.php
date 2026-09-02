@@ -8,7 +8,6 @@ use App\Http\Controllers\Admin\BlogController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\ContactPageController;
-use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GeneralSettingController;
 use App\Http\Controllers\Admin\HomepageSectionController;
@@ -16,12 +15,13 @@ use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\OfferController;
 use App\Http\Controllers\Admin\PagesOverviewController;
 use App\Http\Controllers\Admin\PageSettingController;
-use App\Http\Controllers\Admin\PromotionTypeController;
+use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\RegionController;
 use App\Http\Controllers\Admin\RegionSwitchController;
 use App\Http\Controllers\Admin\ScriptInjectionController;
 use App\Http\Controllers\Admin\StaticPageController;
 use App\Http\Controllers\Admin\StoreController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -35,6 +35,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('switch-region', [RegionSwitchController::class, 'switch'])->name('region.switch');
 
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+
+        Route::middleware('can:manage-users')->group(function () {
+            Route::post('users/{user}/suspend', [UserController::class, 'suspend'])->name('users.suspend');
+            Route::post('users/{user}/reactivate', [UserController::class, 'reactivate'])->name('users.reactivate');
+            Route::resource('users', UserController::class)->except('show');
+        });
 
         Route::get('pages', [PagesOverviewController::class, 'index'])->name('pages-overview.index');
 
@@ -51,8 +60,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('general-settings', [GeneralSettingController::class, 'edit'])->name('general-settings.edit');
         Route::put('general-settings', [GeneralSettingController::class, 'update'])->name('general-settings.update');
 
-        Route::resource('promotion-types', PromotionTypeController::class)->except('show');
-
         Route::resource('badges', BadgeController::class)->except('show');
 
         Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
@@ -64,15 +71,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('stores/{store}/toggle-active', [StoreController::class, 'toggleActive'])->name('stores.toggle-active');
         Route::resource('stores', StoreController::class)->except('show');
 
-        Route::post('offers/reorder', [OfferController::class, 'reorder'])->name('offers.reorder');
-        Route::get('offers/store/{store}/order', [OfferController::class, 'manageOrder'])->name('offers.manage-order');
+        Route::post('offers/store/{store}/reorder', [OfferController::class, 'reorder'])->name('offers.reorder');
         Route::resource('offers', OfferController::class)->except('show');
 
         Route::resource('script-injections', ScriptInjectionController::class)->except('show');
 
         Route::resource('affiliate-networks', AffiliateNetworkController::class)->except('show');
-
-        Route::resource('currencies', CurrencyController::class)->except('show');
 
         Route::get('contact-messages', [ContactMessageController::class, 'index'])->name('contact-messages.index');
         Route::post('contact-messages/{contactMessage}/toggle-read', [ContactMessageController::class, 'markRead'])->name('contact-messages.toggle-read');

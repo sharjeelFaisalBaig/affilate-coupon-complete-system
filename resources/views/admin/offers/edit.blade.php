@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="max-w-2xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <form method="POST" action="{{ route('admin.offers.update', $offer) }}" enctype="multipart/form-data" data-offer-form class="space-y-5">
+        <form method="POST" action="{{ route('admin.offers.update', $offer) }}" data-offer-form class="space-y-5">
             @csrf
             @method('PUT')
 

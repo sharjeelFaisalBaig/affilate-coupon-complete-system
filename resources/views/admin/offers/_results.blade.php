@@ -1,31 +1,36 @@
-<div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+@php
+    // Store and Discount columns are gone per the simplification — this
+    // listing is always scoped to one store already (shown as the filter
+    // above), and there's no numeric discount left to show, just the
+    // free-text Title. Dragging only makes sense on the unfiltered,
+    // sort_order-ordered list, so the handle/reorder is disabled while a
+    // search is active.
+    $reorderable = $selectedStore && ! request()->filled('q');
+@endphp
+<div class="overflow-visible rounded-xl border border-gray-200 bg-white shadow-sm" data-reorder-loading-target>
     <table class="w-full text-left text-sm">
         <thead class="border-b border-gray-200 bg-gray-50 text-xs uppercase text-gray-500">
             <tr>
+                @if ($reorderable)
+                    <th class="w-8 px-2 py-3"></th>
+                @endif
                 <th class="px-4 py-3">Title</th>
-                <th class="px-4 py-3">Store</th>
                 <th class="px-4 py-3">Type</th>
-                <th class="px-4 py-3">Discount</th>
-                <th class="px-4 py-3">Badges</th>
+                <th class="px-4 py-3">Features</th>
                 <th class="px-4 py-3">Uses</th>
                 <th class="px-4 py-3">Expiry</th>
                 <th class="px-4 py-3">Status</th>
                 <th class="px-4 py-3 text-right">Actions</th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100">
+        <tbody @if ($reorderable) data-sortable data-sortable-url="{{ route('admin.offers.reorder', $selectedStore) }}" @endif class="divide-y divide-gray-100">
             @forelse ($offers as $offer)
-                <tr class="hover:bg-gray-50">
+                <tr data-sort-id="{{ $offer->id }}" class="hover:bg-gray-50 {{ $reorderable ? 'cursor-move' : '' }}">
+                    @if ($reorderable)
+                        <td class="px-2 py-3 text-center text-gray-300" aria-hidden="true">⠿</td>
+                    @endif
                     <td class="px-4 py-3 font-medium text-gray-900">{{ $offer->title }}</td>
-                    <td class="px-4 py-3 text-gray-500">
-                        <a href="{{ route('admin.offers.manage-order', $offer->store) }}" class="hover:text-emerald-600" data-no-ajax>{{ $offer->store->name }}</a>
-                    </td>
                     <td class="px-4 py-3 text-gray-500">{{ ucfirst($offer->offer_type) }}</td>
-                    <td class="px-4 py-3 text-gray-500">
-                        @if ($offer->discount_type === 'flat') ${{ number_format($offer->discount_value, 2) }}
-                        @elseif ($offer->discount_type === 'percentage') {{ rtrim(rtrim(number_format($offer->discount_value, 2), '0'), '.') }}%
-                        @else {{ $offer->badge_label ?? '—' }} @endif
-                    </td>
                     <td class="px-4 py-3 text-gray-500">
                         @foreach ($offer->badges as $badge)
                             <span class="rounded px-1.5 py-0.5 text-xs {{ $badge->classes() }}">{{ $badge->name }}</span>
@@ -56,10 +61,8 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="9" class="px-4 py-6 text-center text-gray-400">No offers match.</td></tr>
+                <tr><td colspan="{{ $reorderable ? 8 : 7 }}" class="px-4 py-6 text-center text-gray-400">No promotions match.</td></tr>
             @endforelse
         </tbody>
     </table>
 </div>
-
-<div class="mt-4">{{ $offers->links() }}</div>

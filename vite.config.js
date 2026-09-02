@@ -16,8 +16,6 @@ export default defineConfig({
                 'resources/js/faq-builder.js',
                 'resources/js/homepage-section-form.js',
                 'resources/js/homepage-section-picker.js',
-                'resources/js/custom-sections-builder.js',
-                'resources/js/category-cascade.js',
                 'resources/js/ajax-filters.js',
             ],
             refresh: true,

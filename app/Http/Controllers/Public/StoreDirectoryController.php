@@ -14,7 +14,7 @@ class StoreDirectoryController extends Controller
 {
     public function index(Request $request, Region $region): View
     {
-        $query = Store::where('region_id', $region->id)->where('is_active', true)
+        $query = Store::where('region_id', $region->id)->visible()
             ->withCount([
                 'coupons as active_coupons_count' => fn ($q) => $q->where('is_active', true),
                 'deals as active_deals_count' => fn ($q) => $q->where('is_active', true),
@@ -25,22 +25,19 @@ class StoreDirectoryController extends Controller
         }
 
         if ($request->filled('category_id')) {
-            $category = Category::where('region_id', $region->id)->where('type', 'store')->find($request->integer('category_id'));
-            if ($category) {
-                $categoryIds = array_merge([$category->id], $category->descendantIds());
-                $query->whereIn('category_id', $categoryIds);
-            }
+            $query->where('category_id', $request->integer('category_id'));
         }
 
-        $stores = $query->orderBy('name')->paginate(20)->withQueryString();
+        // Featured/Popular stores get priority in filter and search results.
+        $stores = $query->orderByDesc('is_featured')->orderByDesc('is_popular')->orderBy('name')->paginate(20)->withQueryString();
 
         $categories = Category::where('region_id', $region->id)->where('type', 'store')->where('is_active', true)
-            ->orderBy('sort_order')->get(['id', 'parent_id', 'name']);
+            ->orderBy('sort_order')->get(['id', 'name']);
 
         // Row 3: A-Z directory of every active store's name, independent of
         // Row 2's paginated/filtered grid — grouped by first letter, with
         // letters that have zero stores omitted entirely.
-        $directory = Store::where('region_id', $region->id)->where('is_active', true)
+        $directory = Store::where('region_id', $region->id)->visible()
             ->orderBy('name')->get(['name', 'slug'])
             ->groupBy(fn ($store) => mb_strtoupper(mb_substr($store->name, 0, 1)));
 

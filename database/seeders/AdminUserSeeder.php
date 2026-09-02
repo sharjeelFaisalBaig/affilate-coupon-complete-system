@@ -16,6 +16,7 @@ class AdminUserSeeder extends Seeder
                 'password' => 'password',
                 'email_verified_at' => now(),
                 'is_active' => true,
+                'role' => 'superadmin',
             ]
         );
     }

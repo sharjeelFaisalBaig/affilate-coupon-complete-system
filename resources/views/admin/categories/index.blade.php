@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mb-4 flex items-center justify-between">
-        <p class="text-sm text-gray-500">Drag rows to reorder how categories appear on the storefront. Up to 4 levels deep.</p>
+        <p class="text-sm text-gray-500">Drag rows to reorder how categories appear on the storefront.</p>
         <a href="{{ route('admin.categories.create') }}"
            class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600">
             + Add Category
@@ -18,16 +18,6 @@
                    class="rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
         </div>
         <div>
-            <label class="mb-1 block text-xs font-medium text-gray-500">Parent Level</label>
-            <select name="level" class="rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                <option value="">All Levels</option>
-                <option value="0" @selected(request('level') === '0')>Top Level</option>
-                <option value="1" @selected(request('level') === '1')>Level 2</option>
-                <option value="2" @selected(request('level') === '2')>Level 3</option>
-                <option value="3" @selected(request('level') === '3')>Level 4</option>
-            </select>
-        </div>
-        <div>
             <label class="mb-1 block text-xs font-medium text-gray-500">Status</label>
             <select name="status" class="rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                 <option value="">All</option>
@@ -39,7 +29,7 @@
             <span class="mb-1 block text-xs font-medium text-transparent select-none" aria-hidden="true">Filter</span>
             <button type="submit" class="flex h-[2.625rem] items-center rounded-md bg-gray-900 px-4 text-sm font-medium text-white hover:bg-gray-800">Filter</button>
         </div>
-        @if (request()->hasAny(['q', 'level', 'status']))
+        @if (request()->hasAny(['q', 'status']))
             <div class="flex flex-col justify-end">
                 <span class="mb-1 block text-xs font-medium text-transparent select-none" aria-hidden="true">Clear</span>
                 <a href="{{ route('admin.categories.index') }}"
@@ -54,7 +44,6 @@
                 <tr>
                     <th class="px-4 py-3">Name</th>
                     <th class="px-4 py-3">Slug</th>
-                    <th class="px-4 py-3">Parent Category</th>
                     <th class="px-4 py-3">Active Stores</th>
                     <th class="px-4 py-3">Status</th>
                     <th class="px-4 py-3 text-right">Actions</th>
@@ -63,15 +52,8 @@
             <tbody data-sortable data-sortable-url="{{ route('admin.categories.reorder') }}" class="divide-y divide-gray-100">
                 @forelse ($categories as $category)
                     <tr data-sort-id="{{ $category->id }}" class="cursor-move hover:bg-gray-50">
-                        <td class="px-4 py-3 font-medium text-gray-900">
-                            <span style="padding-left: {{ $category->depth() * 1.25 }}rem;">
-                                @if ($category->parent_id)<span class="mr-1 text-gray-300">↳</span>@endif
-                                {{ $category->name }}
-                            </span>
-                            @if ($category->children_count) <span class="ml-1 rounded bg-sky-50 px-1.5 py-0.5 text-xs font-normal text-sky-700">{{ $category->children_count }} sub</span> @endif
-                        </td>
+                        <td class="px-4 py-3 font-medium text-gray-900">{{ $category->name }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $category->slug }}</td>
-                        <td class="px-4 py-3 text-gray-500">{{ $category->parent?->name ?? '—' }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $category->active_stores_count }}</td>
                         <td class="px-4 py-3">
                             @if ($category->is_active)
@@ -91,7 +73,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="px-4 py-6 text-center text-gray-400">No categories match.</td></tr>
+                    <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">No categories match.</td></tr>
                 @endforelse
             </tbody>
         </table>

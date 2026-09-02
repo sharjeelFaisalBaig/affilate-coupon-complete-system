@@ -44,7 +44,7 @@ class SitemapController extends Controller
                     $urls[] = ['loc' => url("/{$region->code}/category/{$category->slug}"), 'priority' => '0.7'];
                 }
 
-                foreach (Store::where('region_id', $region->id)->where('is_active', true)->where('robots_index', true)->get() as $store) {
+                foreach (Store::where('region_id', $region->id)->visible()->where('robots_index', true)->get() as $store) {
                     $urls[] = ['loc' => url("/{$region->code}/store/{$store->slug}"), 'priority' => '0.7'];
                 }
 

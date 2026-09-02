@@ -16,19 +16,9 @@ class Store extends Model
         'region_id',
         'category_id',
         'name',
-        'title_prefix',
-        'title_suffix',
         'slug',
         'logo_path',
         'about',
-        'faqs',
-        'banner_heading',
-        'banner_text',
-        'banner_image',
-        'banner_button_text',
-        'banner_button_url',
-        'curate_right_content',
-        'custom_sections',
         'website_url',
         'affiliate_url',
         'expiry_date',
@@ -57,8 +47,6 @@ class Store extends Model
     protected function casts(): array
     {
         return [
-            'faqs' => 'array',
-            'custom_sections' => 'array',
             'expiry_date' => 'date',
             'star_rating' => 'decimal:1',
             'is_featured' => 'boolean',
@@ -70,35 +58,33 @@ class Store extends Model
     }
 
     /**
-     * The full display title, e.g. "20% Off {Prefix }{Name}{ Suffix} Promo Codes".
-     */
-    public function fullTitle(): string
-    {
-        return trim(collect([$this->title_prefix, $this->name, $this->title_suffix])->filter()->implode(' '));
-    }
-
-    /**
      * Row 6's auto-calculated statistics box — Verified Discount Codes,
-     * Total Coupons, Best Discount Today, Average Shopper Savings, Last
-     * Coupon Added — all derived from this store's own active offers
-     * rather than stored, so they never go stale.
+     * Total Coupons, Last Coupon Added — derived from this store's own
+     * active offers rather than stored, so they never go stale. Used to
+     * also include Best Discount Today / Average Shopper Savings, but
+     * those were derived from offers.discount_value, which no longer
+     * exists now that promotions are free-text only.
      */
     public function savingsStats(): array
     {
         $activeOffers = $this->offers()->where('is_active', true)->get();
-        $percentageOffers = $activeOffers->where('discount_type', 'percentage');
 
         return [
             'verified_codes' => $activeOffers->filter(fn ($o) => $o->isVerified())->count(),
             'total_coupons' => $activeOffers->where('offer_type', 'coupon')->count(),
-            'best_discount_today' => $percentageOffers->isNotEmpty()
-                ? rtrim(rtrim(number_format((float) $percentageOffers->max('discount_value'), 2), '0'), '.').'%'
-                : '—',
-            'average_savings' => $percentageOffers->isNotEmpty()
-                ? rtrim(rtrim(number_format((float) $percentageOffers->avg('discount_value'), 2), '0'), '.').'%'
-                : '—',
             'last_coupon_added' => optional($this->offers()->latest('created_at')->first())->created_at?->diffForHumans() ?? '—',
         ];
+    }
+
+    /**
+     * Published AND not past its own expiry date (if one is set) — once a
+     * store expires, neither it nor its offers should appear anywhere on
+     * the frontend, mirroring how Offer::isExpired() already gates offers.
+     */
+    public function scopeVisible($query)
+    {
+        return $query->where('is_active', true)
+            ->where(fn ($q) => $q->whereNull('expiry_date')->orWhere('expiry_date', '>=', now()->startOfDay()));
     }
 
     public function region(): BelongsTo
@@ -124,24 +110,6 @@ class Store extends Model
     public function deals(): HasMany
     {
         return $this->offers()->where('offer_type', 'deal');
-    }
-
-    public function relatedStores(): BelongsToMany
-    {
-        return $this->belongsToMany(Store::class, 'store_related', 'store_id', 'related_store_id')
-            ->withPivot('sort_order')
-            ->orderBy('store_related.sort_order');
-    }
-
-    /**
-     * Admin-curated selection shown in the "More Verified {Store} Discount
-     * Codes" section — separate from the main paginated offers() list.
-     */
-    public function featuredOffers(): BelongsToMany
-    {
-        return $this->belongsToMany(Offer::class, 'store_featured_offer')
-            ->withPivot('sort_order')
-            ->orderBy('store_featured_offer.sort_order');
     }
 
     public function blogs(): BelongsToMany

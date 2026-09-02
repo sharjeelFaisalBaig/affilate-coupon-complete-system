@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-white">
 <head>
+    @include('public.partials.script-injections', ['placement' => 'head_start', 'pageType' => $pageType ?? 'home', 'storeId' => $storeId ?? null])
     {!! $region->head_start_script !!}
 
     <meta charset="utf-8">
@@ -24,13 +25,14 @@
     @stack('schema')
 
     @fonts
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/category-cascade.js', 'resources/js/ajax-filters.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/ajax-filters.js'])
     @stack('head')
 
-    @include('public.partials.script-injections', ['placement' => 'head', 'pageType' => $pageType ?? 'home', 'storeId' => $storeId ?? null])
+    @include('public.partials.script-injections', ['placement' => 'head_end', 'pageType' => $pageType ?? 'home', 'storeId' => $storeId ?? null])
     {!! $region->head_end_script !!}
 </head>
 <body class="flex min-h-full flex-col bg-white text-gray-900 antialiased">
+    @include('public.partials.script-injections', ['placement' => 'body_start', 'pageType' => $pageType ?? 'home', 'storeId' => $storeId ?? null])
     {!! $region->body_start_script !!}
 
     @include('public.partials.header')

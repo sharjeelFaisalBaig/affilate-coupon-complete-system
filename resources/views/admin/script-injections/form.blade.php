@@ -19,8 +19,10 @@
             <div>
                 <label class="mb-1 block text-sm font-medium text-gray-700">Placement</label>
                 <select name="placement" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    <option value="head" @selected(old('placement', $injection->placement) === 'head')>&lt;head&gt;</option>
-                    <option value="body_end" @selected(old('placement', $injection->placement) === 'body_end')>Before &lt;/body&gt;</option>
+                    <option value="head_start" @selected(old('placement', $injection->placement) === 'head_start')>Start of &lt;head&gt;</option>
+                    <option value="head_end" @selected(old('placement', $injection->placement) === 'head_end')>End of &lt;head&gt;</option>
+                    <option value="body_start" @selected(old('placement', $injection->placement) === 'body_start')>Start of &lt;body&gt;</option>
+                    <option value="body_end" @selected(old('placement', $injection->placement) === 'body_end')>End of &lt;body&gt;</option>
                 </select>
             </div>
 
