@@ -30,6 +30,7 @@ class GeneralSettingController extends Controller
         $data = $request->validate([
             'footer_text' => ['nullable', 'string'],
             'footer_disclaimer' => ['nullable', 'string'],
+            'store_page_disclaimer' => ['nullable', 'string'],
             'rights_text' => ['nullable', 'string', 'max:255'],
             'logo' => ['nullable', 'image', 'max:512'],
         ]);

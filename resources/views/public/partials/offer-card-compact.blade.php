@@ -14,7 +14,7 @@
     $isCoupon = $offer->isCoupon();
     $redirectUrl = route('public.offer.redirect', [$region->code, $offer]);
 @endphp
-<div class="flex cursor-pointer flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+<div class="card-lift flex cursor-pointer flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
      @if ($isCoupon) data-coupon-cta data-offer-id="{{ $offer->id }}" data-redirect-url="{{ $redirectUrl }}"
      @else data-deal-cta data-redirect-url="{{ $redirectUrl }}" @endif>
     @if ($thumbnailPath)
@@ -50,11 +50,11 @@
 
     <div class="mt-3">
         @if ($isCoupon)
-            <button type="button" class="block w-full rounded-md bg-emerald-500 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-600">
+            <button type="button" class="block w-full rounded-md bg-emerald-500 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md">
                 Shop with code
             </button>
         @else
-            <span class="block w-full rounded-md bg-sky-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-sky-700">
+            <span class="block w-full rounded-md bg-sky-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-md">
                 View Deal
             </span>
         @endif

@@ -5,7 +5,7 @@
 @section('content')
     <div class="mb-4 flex items-center justify-between">
         <p class="text-sm text-gray-500">Superadmins can manage everything, including other users. Managers see everything except this module.</p>
-        <a href="{{ route('admin.users.create') }}" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600">
+        <a href="{{ route('admin.users.create') }}" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md active:translate-y-0">
             + Add User
         </a>
     </div>

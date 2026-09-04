@@ -7,6 +7,73 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Plus Jakarta Sans', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+
+    --animate-fade-up: fade-up 0.6s ease both;
+    --animate-fade-in: fade-in 0.5s ease both;
+
+    @keyframes fade-up {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+}
+
+/*
+ * Modern thin scrollbars everywhere — the browser-default scrollbar (thick,
+ * square, gray) looked especially jarring against the admin's dark sidebar.
+ * Light theme (public site, admin content area) gets a light thumb; the
+ * dark sidebar gets its own darker-toned variant matching bg-slate-900.
+ */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-gray-300) transparent;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--color-gray-300);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-gray-400);
+}
+
+aside {
+    scrollbar-color: var(--color-slate-600) transparent;
+}
+
+aside::-webkit-scrollbar-thumb {
+    background-color: var(--color-slate-600);
+}
+
+aside::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-slate-500);
 }
 
 /*
@@ -21,6 +88,25 @@
  * hand-tuned regresses.
  */
 @layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    h1, h2, h3 {
+        font-family: var(--font-display);
+        letter-spacing: -0.01em;
+    }
+
+    a, button, [role='button'], tr, tbody tr td, label, .rounded-full, .rounded-lg, .rounded-xl, .rounded-md {
+        transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease,
+            box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-emerald-500);
+        outline-offset: 2px;
+    }
+
     input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']):not([type='hidden']),
     select,
     textarea {
@@ -67,4 +153,35 @@
 .btn-ribbon {
     clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%);
     padding-right: 26px;
+}
+
+/*
+ * Shared hover-lift treatment for card-grid items (offer/store/blog cards,
+ * both public and admin) — a subtle rise + deepened shadow on hover, purely
+ * decorative, applied only to genuinely interactive card components (not
+ * blanket-applied to every bordered container, e.g. static panels/tables).
+ */
+.card-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px -8px rgb(0 0 0 / 0.12), 0 4px 8px -4px rgb(0 0 0 / 0.06);
+}
+
+/*
+ * Scroll-reveal entrance (paired with resources/js/scroll-reveal.js, which
+ * toggles .is-visible via IntersectionObserver) — degrades gracefully to
+ * always-visible if JS never runs (see the script's own fallback).
+ */
+[data-reveal] {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+[data-reveal].is-visible {
+    opacity: 1;
+    transform: translateY(0);
 }

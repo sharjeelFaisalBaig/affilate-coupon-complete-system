@@ -14,6 +14,7 @@ class Blog extends Model
     protected $fillable = [
         'region_id',
         'blog_category_id',
+        'sort_order',
         'title',
         'slug',
         'excerpt',
@@ -30,14 +31,13 @@ class Blog extends Model
         'meta_description',
         'og_title',
         'og_image',
-        'canonical_url',
         'robots_index',
         'robots_follow',
         'schema_type',
         'auto_compress_images',
         'convert_to_webp',
         'enable_amp',
-        'related_stores_auto_link',
+        'auto_link_related_blogs',
     ];
 
     protected function casts(): array
@@ -52,7 +52,7 @@ class Blog extends Model
             'auto_compress_images' => 'boolean',
             'convert_to_webp' => 'boolean',
             'enable_amp' => 'boolean',
-            'related_stores_auto_link' => 'boolean',
+            'auto_link_related_blogs' => 'boolean',
         ];
     }
 
@@ -66,10 +66,16 @@ class Blog extends Model
         return $this->belongsTo(BlogCategory::class);
     }
 
-    public function relatedStores(): BelongsToMany
+    /**
+     * Manually-picked related posts, shown in the sidebar only when
+     * auto_link_related_blogs is off — when it's on, the sidebar instead
+     * shows same-category posts ordered by updated_at DESC (computed in
+     * Public\BlogController, not stored).
+     */
+    public function relatedBlogs(): BelongsToMany
     {
-        return $this->belongsToMany(Store::class, 'blog_store')
+        return $this->belongsToMany(Blog::class, 'blog_related_blog', 'blog_id', 'related_blog_id')
             ->withPivot('sort_order')
-            ->orderBy('blog_store.sort_order');
+            ->orderBy('blog_related_blog.sort_order');
     }
 }

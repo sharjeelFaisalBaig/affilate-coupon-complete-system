@@ -1,6 +1,6 @@
-<header class="border-b border-gray-100">
+<header class="sticky top-0 z-40 border-b border-gray-100 bg-white/90 backdrop-blur-sm">
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <a href="{{ route('public.home', $region->code) }}" class="flex shrink-0 items-center gap-2">
+        <a href="{{ \App\Models\PageSetting::urlFor($region, 'home') }}" class="flex shrink-0 items-center gap-2">
             @if ($generalSettings->logo_path)
                 <img src="{{ Storage::url($generalSettings->logo_path) }}" alt="{{ $region->name }}" class="h-8 w-auto object-contain">
             @else
@@ -11,9 +11,11 @@
             @endif
         </a>
 
-        <form action="{{ route('public.stores', $region->code) }}" method="GET" class="hidden flex-1 justify-center md:flex">
+        @php $headerSearchTarget = str_starts_with($pageType ?? '', 'blog_') ? 'blogs' : 'stores'; @endphp
+        <form action="{{ \App\Models\PageSetting::urlFor($region, $headerSearchTarget) }}" method="GET" class="hidden flex-1 justify-center md:flex">
             <div class="relative w-full max-w-96">
-                <input type="search" name="q" value="{{ request('q') }}" placeholder="Search for brands..."
+                <input type="search" name="q" value="{{ request('q') }}" placeholder="{{ $headerSearchTarget === 'blogs' ? 'Search articles...' : 'Search for brands...' }}" autocomplete="off"
+                       data-autosuggest-endpoint="{{ route($headerSearchTarget === 'blogs' ? 'public.suggest.blogs' : 'public.suggest.stores', $region->code) }}"
                        class="w-full rounded-full border border-gray-300 !py-2 pl-4 pr-10 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                 <button type="submit" class="absolute right-1 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-emerald-500 text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" /></svg>
@@ -44,9 +46,10 @@
     </div>
 
     <div id="mobile-menu" class="hidden border-t border-gray-100 px-4 py-4 sm:px-6 md:hidden">
-        <form action="{{ route('public.stores', $region->code) }}" method="GET" class="mb-4">
+        <form action="{{ \App\Models\PageSetting::urlFor($region, $headerSearchTarget) }}" method="GET" class="mb-4">
             <div class="relative">
-                <input type="search" name="q" value="{{ request('q') }}" placeholder="Search for brands..."
+                <input type="search" name="q" value="{{ request('q') }}" placeholder="{{ $headerSearchTarget === 'blogs' ? 'Search articles...' : 'Search for brands...' }}" autocomplete="off"
+                       data-autosuggest-endpoint="{{ route($headerSearchTarget === 'blogs' ? 'public.suggest.blogs' : 'public.suggest.stores', $region->code) }}"
                        class="w-full rounded-full border border-gray-300 !py-2 pl-4 pr-10 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                 <button type="submit" class="absolute right-1 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-emerald-500 text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" /></svg>

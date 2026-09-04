@@ -35,10 +35,6 @@ class BadgeController extends Controller
         /** @var Region $region */
         $region = $request->attributes->get('activeRegion');
 
-        if (Badge::where('region_id', $region->id)->count() >= 2) {
-            return back()->withInput()->with('error', 'A maximum of 2 badges is allowed (SRS §8) — edit or delete an existing badge first.');
-        }
-
         $data = $this->validated($request);
         $data['region_id'] = $region->id;
 

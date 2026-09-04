@@ -3,7 +3,7 @@
 @section('title', $blog->exists ? 'Edit Blog Post' : 'Add Blog Post')
 
 @push('head')
-    @vite(['resources/js/blog-editor.js'])
+    @vite(['resources/js/blog-editor.js', 'resources/js/image-dimension-check.js', 'resources/js/blog-form.js'])
 @endpush
 
 @section('content')
@@ -49,9 +49,10 @@
                 @if ($blog->featured_image)
                     <img src="{{ Storage::url($blog->featured_image) }}" alt="" width="120" height="68" class="mb-2 h-[68px] w-[120px] rounded border border-gray-200 object-cover">
                 @endif
-                <input type="file" name="featured_image" accept="image/*"
+                <input type="file" name="featured_image" accept="image/*" data-required-width="670" data-required-height="300"
                        class="block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">
-                <p class="mt-1 text-xs text-gray-400">* Note: Image size must be less than 50KB and in .webp format. Preferred dimensions: 1200x675px.</p>
+                <p class="mt-1 text-xs text-gray-400">* Required dimensions: exactly 670x300px.</p>
+                <p data-dimension-check-result class="mt-1 text-xs"></p>
             </div>
 
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -68,11 +69,19 @@
                 </div>
             </div>
 
-            <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700">Related Stores</label>
-                <select name="store_ids[]" multiple size="6" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    @foreach ($stores as $s)
-                        <option value="{{ $s->id }}" @selected(in_array($s->id, old('store_ids', $selectedStores)))>{{ $s->name }}</option>
+            <label class="flex items-center gap-2">
+                <input type="checkbox" name="auto_link_related_blogs" value="1" data-auto-link-toggle
+                       @checked(old('auto_link_related_blogs', $blog->id ? $blog->auto_link_related_blogs : true))
+                       class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500">
+                <span class="text-sm text-gray-700">Related Blogs Auto-linking</span>
+            </label>
+            <p class="-mt-3 text-xs text-gray-400">When on, the sidebar automatically shows other posts in the same category, newest-updated first. Turn off to hand-pick them below.</p>
+
+            <div data-related-blogs-picker @if (old('auto_link_related_blogs', $blog->id ? $blog->auto_link_related_blogs : true)) class="hidden" @endif>
+                <label class="mb-1 block text-sm font-medium text-gray-700">Related Blogs</label>
+                <select name="related_blog_ids[]" multiple size="6" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    @foreach ($otherBlogs as $other)
+                        <option value="{{ $other->id }}" @selected(in_array($other->id, old('related_blog_ids', $selectedRelatedBlogs)))>{{ $other->title }}</option>
                     @endforeach
                 </select>
             </div>
@@ -103,11 +112,10 @@
                     'auto_compress_images' => 'Auto-compress Images',
                     'convert_to_webp' => 'Convert to WebP',
                     'enable_amp' => 'Enable AMP',
-                    'related_stores_auto_link' => 'Related Stores Auto-linking',
                 ] as $field => $label)
                     <label class="flex items-center gap-2">
                         <input type="checkbox" name="{{ $field }}" value="1"
-                               @checked(old($field, $blog->id ? $blog->$field : in_array($field, ['auto_compress_images', 'convert_to_webp', 'related_stores_auto_link'])))
+                               @checked(old($field, $blog->id ? $blog->$field : in_array($field, ['auto_compress_images', 'convert_to_webp'])))
                                class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500">
                         <span class="text-sm text-gray-700">{{ $label }}</span>
                     </label>
@@ -130,11 +138,6 @@
                     <div class="sm:col-span-2">
                         <label class="mb-1 block text-xs font-medium text-gray-500">Meta Description</label>
                         <input type="text" name="meta_description" value="{{ old('meta_description', $blog->meta_description) }}"
-                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="mb-1 block text-xs font-medium text-gray-500">Canonical URL</label>
-                        <input type="url" name="canonical_url" value="{{ old('canonical_url', $blog->canonical_url) }}"
                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     </div>
                     <div>
@@ -160,10 +163,10 @@
             </fieldset>
 
             <div class="flex gap-3">
-                <button type="submit" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600">
+                <button type="submit" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md active:translate-y-0">
                     {{ $blog->exists ? 'Save Changes' : 'Create Blog Post' }}
                 </button>
-                <a href="{{ route('admin.blogs.index') }}" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <a href="{{ route('admin.blogs.index') }}" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 hover:shadow-sm active:translate-y-0">
                     Cancel
                 </a>
             </div>

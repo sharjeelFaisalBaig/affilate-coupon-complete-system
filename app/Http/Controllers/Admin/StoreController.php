@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\Concerns\GuardsRegionOwnership;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Offer;
 use App\Models\Region;
 use App\Models\Store;
+use App\Models\StoreSuffix;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -49,15 +51,32 @@ class StoreController extends Controller
         return view('admin.stores.index', compact('stores', 'categories'));
     }
 
+    public function suggest(Request $request): \Illuminate\Http\JsonResponse
+    {
+        /** @var Region $region */
+        $region = $request->attributes->get('activeRegion');
+        $q = $request->string('q')->value();
+
+        $stores = Store::where('region_id', $region->id)->where('name', 'like', "%{$q}%")
+            ->orderBy('name')->limit(8)->get(['id', 'name']);
+
+        return response()->json($stores->map(fn ($store) => [
+            'label' => $store->name,
+            'url' => route('admin.stores.edit', $store),
+        ]));
+    }
+
     public function create(Request $request): View
     {
         /** @var Region $region */
         $region = $request->attributes->get('activeRegion');
         $categories = Category::where('region_id', $region->id)->where('type', 'store')->orderBy('name')->get();
+        $storeSuffixes = StoreSuffix::where('region_id', $region->id)->where('is_active', true)->orderBy('name')->get();
 
         return view('admin.stores.form', [
             'store' => new Store(),
             'categories' => $categories,
+            'storeSuffixes' => $storeSuffixes,
         ]);
     }
 
@@ -93,10 +112,12 @@ class StoreController extends Controller
         $this->abortUnlessOwnedByActiveRegion($request, $store->region_id);
 
         $categories = Category::where('region_id', $store->region_id)->where('type', 'store')->orderBy('name')->get();
+        $storeSuffixes = StoreSuffix::where('region_id', $store->region_id)->where('is_active', true)->orderBy('name')->get();
 
         return view('admin.stores.form', [
             'store' => $store,
             'categories' => $categories,
+            'storeSuffixes' => $storeSuffixes,
         ]);
     }
 
@@ -156,10 +177,21 @@ class StoreController extends Controller
         /** @var Region $region */
         $region = $request->attributes->get('activeRegion');
 
-        $featured = Store::where('region_id', $region->id)->where('is_featured', true)->orderBy('featured_order')->get();
-        $popular = Store::where('region_id', $region->id)->where('is_popular', true)->orderBy('popular_order')->get();
+        $featured = Store::where('region_id', $region->id)->where('is_featured', true)->with('category')->orderBy('featured_order')->get();
+        $popular = Store::where('region_id', $region->id)->where('is_popular', true)->with('category')->orderBy('popular_order')->get();
+        $pending = Store::where('region_id', $region->id)->where('is_pending', true)->with('category')->orderBy('pending_order')->get();
 
-        return view('admin.stores.classification', compact('featured', 'popular'));
+        // Featured Deals: every featured offer across every store in the
+        // region together, in its own cross-store order — distinct from
+        // offers.sort_order, which only governs a single store's own
+        // detail-page ordering.
+        $featuredOffers = Offer::with('store')
+            ->whereHas('store', fn ($q) => $q->where('region_id', $region->id))
+            ->where('is_featured', true)
+            ->orderBy('featured_order')
+            ->get();
+
+        return view('admin.stores.classification', compact('featured', 'popular', 'pending', 'featuredOffers'));
     }
 
     public function reorderFeatured(Request $request): Response
@@ -170,6 +202,26 @@ class StoreController extends Controller
     public function reorderPopular(Request $request): Response
     {
         return $this->reorder($request, 'popular_order');
+    }
+
+    public function reorderPending(Request $request): Response
+    {
+        return $this->reorder($request, 'pending_order');
+    }
+
+    public function reorderFeaturedOffers(Request $request): Response
+    {
+        /** @var Region $region */
+        $region = $request->attributes->get('activeRegion');
+        $ids = $request->validate(['ids' => ['required', 'array']])['ids'];
+
+        foreach ($ids as $index => $id) {
+            Offer::where('id', $id)
+                ->whereHas('store', fn ($q) => $q->where('region_id', $region->id))
+                ->update(['featured_order' => $index + 1]);
+        }
+
+        return response()->noContent();
     }
 
     private function reorder(Request $request, string $column): Response
@@ -201,16 +253,19 @@ class StoreController extends Controller
                 Rule::unique('stores', 'slug')->where('region_id', $region->id)->ignore($store),
             ],
             'about' => ['nullable', 'string'],
-            'website_url' => ['nullable', 'url', 'max:255'],
+            'store_suffix_id' => [
+                'nullable',
+                Rule::exists('store_suffixes', 'id')->where('region_id', $region->id),
+            ],
             'affiliate_url' => ['required', 'url', 'max:255'],
             'expiry_date' => ['nullable', 'date'],
             'star_rating' => ['required', 'numeric', 'min:0', 'max:5'],
             'reviews_count' => ['nullable', 'integer', 'min:0'],
             'logo' => ['nullable', 'image', 'max:5120', 'dimensions:width=200,height=200'],
+            'status' => ['required', 'in:pending,active'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string', 'max:255'],
             'meta_keywords' => ['nullable', 'string', 'max:255'],
-            'canonical_url' => ['nullable', 'url', 'max:255'],
             'og_title' => ['nullable', 'string', 'max:255'],
             'og_description' => ['nullable', 'string', 'max:255'],
             'head_start_script' => ['nullable', 'string'],
@@ -222,7 +277,9 @@ class StoreController extends Controller
         $data['reviews_count'] = $data['reviews_count'] ?? 0;
         $data['is_featured'] = $request->boolean('is_featured');
         $data['is_popular'] = $request->boolean('is_popular');
-        $data['is_active'] = $request->boolean('is_active');
+        $data['is_pending'] = $request->boolean('is_pending');
+        $data['is_active'] = $data['status'] === 'active';
+        unset($data['status']);
         $data['robots_index'] = $request->boolean('robots_index');
         $data['robots_follow'] = $request->boolean('robots_follow');
 

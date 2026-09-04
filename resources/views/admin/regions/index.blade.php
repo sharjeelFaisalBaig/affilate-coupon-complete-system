@@ -5,7 +5,7 @@
 @section('content')
     <div class="mb-4 flex items-center justify-between">
         <p class="text-sm text-gray-500">Region is the root entity — every store, coupon, deal, blog, and page belongs to one.</p>
-        <a href="{{ route('admin.regions.create') }}" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600">
+        <a href="{{ route('admin.regions.create') }}" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md active:translate-y-0">
             + Add Region
         </a>
     </div>

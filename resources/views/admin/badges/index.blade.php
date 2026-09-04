@@ -4,12 +4,10 @@
 
 @section('content')
     <div class="mb-4 flex items-center justify-between">
-        <p class="text-sm text-gray-500">A maximum of 2 badges total is allowed system-wide, and a promotion can carry at most 2 of them. Badges assigned to active promotions can't be deleted.</p>
-        @if ($badges->count() < 2)
-            <a href="{{ route('admin.badges.create') }}" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600">
-                + Add Badge
-            </a>
-        @endif
+        <p class="text-sm text-gray-500">A promotion can carry at most 2 of these. Badges assigned to active promotions can't be deleted.</p>
+        <a href="{{ route('admin.badges.create') }}" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md active:translate-y-0">
+            + Add Badge
+        </a>
     </div>
 
     <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">

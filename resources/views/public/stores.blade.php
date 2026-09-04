@@ -1,13 +1,9 @@
 @extends('public.layouts.app')
 
 @section('content')
+    @include('public.partials.page-header', ['heading' => $heading, 'subheading' => $subheading])
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <h1 class="text-2xl font-bold text-gray-900">{{ $heading }}</h1>
-        @if ($subheading)
-            <p class="mt-2 text-sm text-gray-500">{{ $subheading }}</p>
-        @endif
-
-        <div data-ajax-filter data-base-url="{{ route('public.stores', $region->code) }}" class="mt-6">
+        <div data-ajax-filter data-base-url="{{ \App\Models\PageSetting::urlFor($region, 'stores') }}" class="mt-6">
             {{-- Row 1: category cascade filter + search + explicit Filter button --}}
             <form data-ajax-filter-form class="flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                 <div>
@@ -21,7 +17,8 @@
                 </div>
                 <div>
                     <label class="mb-1 block text-xs font-medium text-gray-500">Search</label>
-                    <input type="search" name="q" value="{{ request('q') }}" placeholder="Search for a store..."
+                    <input type="search" name="q" value="{{ request('q') }}" placeholder="Search for a store..." autocomplete="off"
+                           data-autosuggest-endpoint="{{ route('public.suggest.stores', $region->code) }}"
                            class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                 </div>
                 <div class="flex flex-col justify-end">
@@ -31,7 +28,7 @@
                 @if (request()->hasAny(['q', 'category_id']))
                     <div class="flex flex-col justify-end">
                         <span class="mb-1 block text-xs font-medium text-transparent select-none" aria-hidden="true">Clear</span>
-                        <a href="{{ route('public.stores', $region->code) }}" data-no-ajax
+                        <a href="{{ \App\Models\PageSetting::urlFor($region, 'stores') }}" data-no-ajax
                            class="flex h-[2.625rem] items-center text-sm text-gray-500 hover:text-gray-700">Clear</a>
                     </div>
                 @endif

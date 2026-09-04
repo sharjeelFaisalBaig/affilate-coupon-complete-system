@@ -11,6 +11,17 @@
             @method('PUT')
 
             <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700">URL Slug</label>
+                <div class="flex items-center gap-1">
+                    <span class="text-sm text-gray-400">/{{ $activeRegion->code }}/</span>
+                    <input type="text" name="slug" value="{{ old('slug', $settings->slug ?? \App\Models\PageSetting::DEFAULT_SLUGS[$pageKey]) }}"
+                           pattern="[a-z0-9-]*"
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                </div>
+                <p class="mt-1 text-xs text-gray-400">Lowercase letters, numbers, and hyphens only — leave blank to make this page the region's root ("/"). Only one page per region can be blank at a time.</p>
+            </div>
+
+            <div>
                 <label class="mb-1 block text-sm font-medium text-gray-700">Heading (H1)</label>
                 <input type="text" name="heading" value="{{ old('heading', $settings->heading) }}"
                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
@@ -21,6 +32,21 @@
                 <textarea name="subheading" rows="2"
                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">{{ old('subheading', $settings->subheading) }}</textarea>
             </div>
+
+            @if ($pageKey === 'home')
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-700">Hero Search Placeholder</label>
+                        <input type="text" name="hero_search_placeholder" value="{{ old('hero_search_placeholder', $settings->hero_search_placeholder) }}"
+                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-700">Hero Search Button Text</label>
+                        <input type="text" name="hero_search_button_text" value="{{ old('hero_search_button_text', $settings->hero_search_button_text) }}"
+                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    </div>
+                </div>
+            @endif
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
@@ -85,7 +111,7 @@
             </label>
 
             <div class="flex items-center gap-3 pt-2">
-                <button type="submit" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600">
+                <button type="submit" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md active:translate-y-0">
                     Save
                 </button>
                 <a href="{{ route('admin.pages-overview.index') }}" class="text-sm font-medium text-gray-500 hover:text-gray-700">Back to Pages</a>

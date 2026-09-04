@@ -13,7 +13,8 @@
                     <td class="px-4 py-3 font-medium text-gray-900">{{ $store->name }}</td>
                     <td class="px-4 py-3 text-gray-500">{{ $store->category?->name ?? '—' }}</td>
                     <td class="px-4 py-3 text-right">
-                        <a href="{{ route('admin.stores.edit', $store) }}" class="font-medium text-emerald-600 hover:text-emerald-700" data-no-ajax>Edit</a>
+                        <a href="{{ route('public.store', [$activeRegion->code, $store->slug]) }}" target="_blank" rel="noopener" class="font-medium text-gray-600 hover:text-gray-800" data-no-ajax>View</a>
+                        <a href="{{ route('admin.stores.edit', $store) }}" class="ml-3 font-medium text-emerald-600 hover:text-emerald-700" data-no-ajax>Edit</a>
                         <form action="{{ route('admin.stores.destroy', $store) }}" method="POST" class="ml-3 inline"
                               onsubmit="return confirm('Delete this store? This is only possible if it has no active coupons or deals.');">
                             @csrf

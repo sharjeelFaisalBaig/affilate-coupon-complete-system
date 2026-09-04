@@ -12,6 +12,20 @@ use Illuminate\View\View;
 
 class StoreDirectoryController extends Controller
 {
+    public function suggest(Request $request, Region $region): \Illuminate\Http\JsonResponse
+    {
+        $q = $request->string('q')->value();
+
+        $stores = Store::where('region_id', $region->id)->visible()
+            ->where('name', 'like', "%{$q}%")
+            ->orderBy('name')->limit(8)->get(['slug', 'name']);
+
+        return response()->json($stores->map(fn ($store) => [
+            'label' => $store->name,
+            'url' => route('public.store', [$region->code, $store->slug]),
+        ]));
+    }
+
     public function index(Request $request, Region $region): View
     {
         $query = Store::where('region_id', $region->id)->visible()

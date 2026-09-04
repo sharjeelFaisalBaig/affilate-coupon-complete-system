@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminSettingController;
 use App\Http\Controllers\Admin\AffiliateNetworkController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BadgeController;
@@ -21,13 +22,24 @@ use App\Http\Controllers\Admin\RegionSwitchController;
 use App\Http\Controllers\Admin\ScriptInjectionController;
 use App\Http\Controllers\Admin\StaticPageController;
 use App\Http\Controllers\Admin\StoreController;
+use App\Http\Controllers\Admin\StoreSuffixController;
 use App\Http\Controllers\Admin\UserController;
+use App\Models\AdminSetting;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('admin')->name('admin.')->group(function () {
+// The prefix itself is DB-backed (Superadmin-editable, see AdminSettingController)
+// but always falls back to config('admin.default_path') — see AdminSetting::panelPath().
+// Must stay a static/eagerly-resolved string here (not a {wildcard} route
+// parameter) and registered before the {region} catch-all in web.php, or a
+// request like GET /admin matches {region}="admin" first and never reaches
+// the panel. Changing the stored path clears the route cache immediately
+// (AdminSettingController::update()) so it takes effect on the very next
+// uncached request; a production route:cache still needs re-running (part
+// of the normal deploy flow) to bake the new value into a cached route file.
+Route::prefix(AdminSetting::panelPath())->name('admin.')->group(function () {
     Route::middleware('guest')->group(function () {
         Route::get('login', [AuthController::class, 'showLogin'])->name('login');
-        Route::post('login', [AuthController::class, 'login'])->name('login.attempt');
+        Route::post('login', [AuthController::class, 'login'])->middleware('throttle:admin-login')->name('login.attempt');
     });
 
     Route::middleware(['auth', 'admin.active', 'admin.region'])->group(function () {
@@ -43,6 +55,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('users/{user}/suspend', [UserController::class, 'suspend'])->name('users.suspend');
             Route::post('users/{user}/reactivate', [UserController::class, 'reactivate'])->name('users.reactivate');
             Route::resource('users', UserController::class)->except('show');
+
+            Route::get('admin-settings', [AdminSettingController::class, 'edit'])->name('admin-settings.edit');
+            Route::put('admin-settings', [AdminSettingController::class, 'update'])->name('admin-settings.update');
         });
 
         Route::get('pages', [PagesOverviewController::class, 'index'])->name('pages-overview.index');
@@ -61,16 +76,21 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('general-settings', [GeneralSettingController::class, 'update'])->name('general-settings.update');
 
         Route::resource('badges', BadgeController::class)->except('show');
+        Route::resource('store-suffixes', StoreSuffixController::class)->except('show');
 
         Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
         Route::resource('categories', CategoryController::class)->except('show');
 
+        Route::get('stores/suggest', [StoreController::class, 'suggest'])->name('stores.suggest');
         Route::get('stores/classification', [StoreController::class, 'classification'])->name('stores.classification');
         Route::post('stores/reorder-featured', [StoreController::class, 'reorderFeatured'])->name('stores.reorder-featured');
         Route::post('stores/reorder-popular', [StoreController::class, 'reorderPopular'])->name('stores.reorder-popular');
+        Route::post('stores/reorder-pending', [StoreController::class, 'reorderPending'])->name('stores.reorder-pending');
+        Route::post('stores/reorder-featured-offers', [StoreController::class, 'reorderFeaturedOffers'])->name('stores.reorder-featured-offers');
         Route::post('stores/{store}/toggle-active', [StoreController::class, 'toggleActive'])->name('stores.toggle-active');
         Route::resource('stores', StoreController::class)->except('show');
 
+        Route::get('offers/suggest', [OfferController::class, 'suggest'])->name('offers.suggest');
         Route::post('offers/store/{store}/reorder', [OfferController::class, 'reorder'])->name('offers.reorder');
         Route::resource('offers', OfferController::class)->except('show');
 
@@ -85,6 +105,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('blog-categories/reorder', [BlogCategoryController::class, 'reorder'])->name('blog-categories.reorder');
         Route::resource('blog-categories', BlogCategoryController::class)->except('show');
 
+        Route::post('blogs/reorder', [BlogController::class, 'reorder'])->name('blogs.reorder');
         Route::resource('blogs', BlogController::class)->except('show');
 
         Route::resource('static-pages', StaticPageController::class)->except('show');

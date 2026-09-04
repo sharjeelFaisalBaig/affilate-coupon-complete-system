@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\GeneralSetting;
 use App\Models\Menu;
+use App\Models\PageSetting;
 use App\Models\Region;
 use Closure;
 use Illuminate\Http\Request;
@@ -31,8 +32,16 @@ class ResolvePublicRegion
 
         // Header/footer nav (Menu Manager) and footer copy/logo (General
         // Settings) are shared here once per request for every public page,
-        // matching how $region/$allRegions are already shared.
-        $menusBySlot = Menu::where('region_id', $region->id)->with('items')->get()->keyBy('slot');
+        // matching how $region/$allRegions are already shared. The blog
+        // section (listing + detail) runs its own fully independent set of
+        // the same 4 menus rather than the rest of the site's — resolved
+        // from the URL segment right after {region}, respecting whatever
+        // slug the blogs listing page currently has (item 14's renaming).
+        $firstSegment = $request->segment(2) ?? '';
+        $isBlogSection = $firstSegment === 'blog' || PageSetting::resolveSlug($region, $firstSegment) === 'blogs';
+        $scope = $isBlogSection ? Menu::SCOPE_BLOG : Menu::SCOPE_GLOBAL;
+
+        $menusBySlot = Menu::forRegionScope($region, $scope);
         View::share('headerMenu', $menusBySlot->get(Menu::SLOT_HEADER));
         View::share('footerAboutMenu', $menusBySlot->get(Menu::SLOT_FOOTER_ABOUT));
         View::share('footerConnectMenu', $menusBySlot->get(Menu::SLOT_FOOTER_CONNECT));

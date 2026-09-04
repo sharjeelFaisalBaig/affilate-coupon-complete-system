@@ -13,7 +13,7 @@ class StoreController extends Controller
     public function show(Request $request, Region $region, string $storeSlug): View
     {
         $store = Store::where('region_id', $region->id)->where('slug', $storeSlug)->visible()
-            ->with('category')
+            ->with(['category', 'storeSuffix'])
             ->firstOrFail();
 
         $query = $store->offers()->with(['store', 'badges'])->where('is_active', true);
@@ -34,7 +34,8 @@ class StoreController extends Controller
         $couponCount = $store->offers()->where('is_active', true)->where('offer_type', 'coupon')->count();
         $dealCount = $store->offers()->where('is_active', true)->where('offer_type', 'deal')->count();
 
-        $h1 = "{$store->name} Promo Codes, Coupons & Deals ".now()->format('F Y');
+        $suffix = $store->storeSuffix?->name ?: 'Promo Codes, Coupons & Deals';
+        $h1 = "{$store->name} {$suffix} ".now()->format('F Y');
 
         $viewData = [
             'region' => $region,
@@ -48,7 +49,7 @@ class StoreController extends Controller
             'h1' => $h1,
             'seoTitle' => $store->meta_title ?: $h1,
             'seoDescription' => $store->meta_description ?: "Save with the latest verified {$store->name} coupon codes and deals in {$region->name}.",
-            'canonicalUrl' => $store->canonical_url,
+            'canonicalUrl' => $region->canonicalUrlFor($request->path()),
             'robotsIndex' => $store->robots_index,
             'robotsFollow' => $store->robots_follow,
             'ogTitle' => $store->og_title,

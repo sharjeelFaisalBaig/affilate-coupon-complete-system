@@ -21,12 +21,15 @@ class MenuController extends Controller
         /** @var Region $region */
         $region = $request->attributes->get('activeRegion');
 
-        Menu::ensureFixedMenusExist($region);
+        Menu::ensureFixedMenusExist($region, Menu::SCOPE_GLOBAL);
+        Menu::ensureFixedMenusExist($region, Menu::SCOPE_BLOG);
 
-        $menus = Menu::where('region_id', $region->id)->withCount('items')->get()
-            ->sortBy(fn ($menu) => array_search($menu->slot, array_keys(Menu::FIXED_SLOTS)));
+        $slotOrder = array_keys(Menu::FIXED_SLOTS);
+        $menusByScope = Menu::where('region_id', $region->id)->withCount('items')->get()
+            ->sortBy(fn ($menu) => array_search($menu->slot, $slotOrder))
+            ->groupBy('scope');
 
-        return view('admin.menus.index', compact('menus'));
+        return view('admin.menus.index', compact('menusByScope'));
     }
 
     public function edit(Request $request, Menu $menu): View

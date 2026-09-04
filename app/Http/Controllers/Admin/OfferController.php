@@ -65,6 +65,23 @@ class OfferController extends Controller
         return view('admin.offers.index', compact('offers', 'stores', 'selectedStore'));
     }
 
+    public function suggest(Request $request): \Illuminate\Http\JsonResponse
+    {
+        /** @var Region $region */
+        $region = $request->attributes->get('activeRegion');
+        $q = $request->string('q')->value();
+
+        $offers = Offer::with('store')
+            ->whereHas('store', fn ($sq) => $sq->where('region_id', $region->id))
+            ->where(fn ($oq) => $oq->where('title', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%"))
+            ->limit(8)->get();
+
+        return response()->json($offers->map(fn ($offer) => [
+            'label' => "{$offer->title} — {$offer->store->name}",
+            'url' => route('admin.offers.edit', $offer),
+        ]));
+    }
+
     public function create(Request $request): View
     {
         /** @var Region $region */
@@ -185,6 +202,7 @@ class OfferController extends Controller
 
         $data['badge_ids'] = $data['badge_ids'] ?? [];
         $data['is_active'] = $request->boolean('is_active');
+        $data['is_featured'] = $request->boolean('is_featured');
 
         if ($offer) {
             $data['clicks'] = $data['clicks'] ?? $offer->clicks;

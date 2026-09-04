@@ -32,7 +32,7 @@
                 <p class="text-sm text-gray-500">{{ ucfirst($user->role) }} <span class="text-xs text-gray-400">(only a Superadmin can change this)</span></p>
             </div>
 
-            <button type="submit" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600">
+            <button type="submit" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md active:translate-y-0">
                 Save Changes
             </button>
         </form>

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Region;
 use App\Models\Store;
+use App\Models\StoreSuffix;
 use Illuminate\Database\Seeder;
 
 class StoreSeeder extends Seeder
@@ -13,6 +14,8 @@ class StoreSeeder extends Seeder
     {
         Region::all()->each(function (Region $region) {
             $categories = Category::where('region_id', $region->id)->where('type', 'store')->get();
+            $defaultSuffixId = StoreSuffix::where('region_id', $region->id)
+                ->where('name', 'Promo Codes, Coupons & Deals')->value('id');
 
             $featuredCount = 0;
             $popularCount = 0;
@@ -22,6 +25,7 @@ class StoreSeeder extends Seeder
                     $store = Store::factory()->create([
                         'region_id' => $region->id,
                         'category_id' => $category->id,
+                        'store_suffix_id' => $defaultSuffixId,
                     ]);
 
                     if ($store->is_featured) {
@@ -33,6 +37,14 @@ class StoreSeeder extends Seeder
                     }
                 }
             }
+
+            // A handful of Pending stores per region so the classification
+            // screen's "Pending Stores" tab has real demo content out of the
+            // box, rather than looking broken/empty on a fresh install.
+            Store::where('region_id', $region->id)->inRandomOrder()->limit(4)->get()
+                ->each(function (Store $store, int $index) {
+                    $store->update(['is_pending' => true, 'pending_order' => $index + 1]);
+                });
         });
     }
 }

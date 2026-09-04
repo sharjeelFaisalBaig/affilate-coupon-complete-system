@@ -37,6 +37,13 @@
             </div>
 
             <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700">Store Page Disclaimer</label>
+                <textarea name="store_page_disclaimer" rows="3"
+                          class="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">{{ old('store_page_disclaimer', $settings->store_page_disclaimer) }}</textarea>
+                <p class="mt-1 text-xs text-gray-400">Shown just under the heading on every store detail page.</p>
+            </div>
+
+            <div>
                 <label class="mb-1 block text-sm font-medium text-gray-700">All Rights Reserved Text</label>
                 <input type="text" name="rights_text" value="{{ old('rights_text', $settings->rights_text) }}" maxlength="255"
                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
@@ -44,7 +51,7 @@
             </div>
 
             <div class="flex gap-3">
-                <button type="submit" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600">
+                <button type="submit" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md active:translate-y-0">
                     Save Changes
                 </button>
             </div>

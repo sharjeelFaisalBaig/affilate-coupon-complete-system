@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Badge;
 use App\Models\ContactPageAgenda;
+use App\Models\GeneralSetting;
 use App\Models\Menu;
 use App\Models\PageSetting;
 use App\Models\Region;
 use App\Models\StaticPage;
+use App\Models\StoreSuffix;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -156,6 +158,8 @@ class RegionController extends Controller
         ContactPageAgenda::seedDefaultsFor($region);
         StaticPage::seedDefaultsFor($region);
         PageSetting::seedDefaultsFor($region);
+        StoreSuffix::seedDefaultsFor($region);
+        GeneralSetting::seedDefaultsFor($region);
     }
 
     private function validated(Request $request, ?Region $region = null): array
@@ -171,6 +175,7 @@ class RegionController extends Controller
             'head_end_script' => ['nullable', 'string'],
             'body_start_script' => ['nullable', 'string'],
             'body_end_script' => ['nullable', 'string'],
+            'canonical_base_url' => ['nullable', 'url', 'max:255'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
 

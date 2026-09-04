@@ -11,7 +11,7 @@
     $thumbnailPath = $store->logo_path;
     $redirectUrl = route('public.offer.redirect', [$region->code, $offer]);
 @endphp
-<div class="flex flex-col rounded-xl border border-gray-200 bg-white shadow-sm hover:border-emerald-300 hover:shadow">
+<div class="card-lift flex h-full flex-col rounded-xl border border-gray-200 bg-white shadow-sm hover:border-emerald-300">
     <a href="{{ route('public.store', [$region->code, $store->slug]) }}" class="flex h-48 items-center justify-center border-b border-gray-100 p-6">
         @if ($thumbnailPath)
             <img src="{{ Storage::url($thumbnailPath) }}" alt="{{ $store->name }}" width="160" height="80" loading="lazy" class="max-h-full max-w-full object-contain">
@@ -19,21 +19,30 @@
             @include('public.partials.placeholder-image', ['class' => 'h-20 w-20 rounded', 'iconClass' => 'h-8 w-8'])
         @endif
     </a>
-    <a href="{{ $redirectUrl }}" target="_blank" rel="noopener sponsored" class="block p-4">
-        {{-- Each badge on its own line — 2 badges side-by-side reads as noise. --}}
-        @if ($offer->badges->isNotEmpty())
-            <div class="flex flex-col items-start gap-1">
-                @foreach ($offer->badges as $badge)
-                    <span class="rounded px-1.5 py-0.5 text-xs font-medium {{ $badge->classes() }}">{{ $badge->name }}</span>
-                @endforeach
-            </div>
-        @endif
-        @if ($offer->expiry_date)
-            <p class="mt-1 text-xs text-gray-400">Expires {{ $offer->expiry_date->format('M j, Y') }}</p>
-        @endif
-        <p class="mt-1 text-xs text-gray-400">
-            {{ $store->name }} code &middot; {{ $offer->usageLabel() }}
-        </p>
-        <p class="mt-1 font-bold text-gray-900">{{ $offer->title }} at {{ $store->name }}</p>
+    {{--
+        flex-1 + the title's mt-auto keeps the title pinned to the same
+        baseline across every card in a row, regardless of whether the
+        optional badges/expiry line above it are present — without this,
+        cards missing a badge had their title sit noticeably higher than
+        neighboring cards that had one.
+    --}}
+    <a href="{{ $redirectUrl }}" target="_blank" rel="noopener sponsored" class="flex flex-1 flex-col p-4">
+        <div>
+            {{-- Each badge on its own line — 2 badges side-by-side reads as noise. --}}
+            @if ($offer->badges->isNotEmpty())
+                <div class="flex flex-col items-start gap-1">
+                    @foreach ($offer->badges as $badge)
+                        <span class="rounded px-1.5 py-0.5 text-xs font-medium {{ $badge->classes() }}">{{ $badge->name }}</span>
+                    @endforeach
+                </div>
+            @endif
+            @if ($offer->expiry_date)
+                <p class="mt-1 text-xs text-gray-400">Expires {{ $offer->expiry_date->format('M j, Y') }}</p>
+            @endif
+            <p class="mt-1 text-xs text-gray-400">
+                {{ $store->name }} code &middot; {{ $offer->usageLabel() }}
+            </p>
+        </div>
+        <p class="mt-auto pt-1 font-bold text-gray-900">{{ $offer->title }} at {{ $store->name }}</p>
     </a>
 </div>

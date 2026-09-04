@@ -48,14 +48,13 @@ class BlogFactory extends Factory
             'meta_description' => fake()->sentence(20),
             'og_title' => $title,
             'og_image' => null,
-            'canonical_url' => null,
             'robots_index' => true,
             'robots_follow' => true,
             'schema_type' => 'BlogPosting',
             'auto_compress_images' => true,
             'convert_to_webp' => true,
             'enable_amp' => false,
-            'related_stores_auto_link' => true,
+            'auto_link_related_blogs' => true,
         ];
     }
 }

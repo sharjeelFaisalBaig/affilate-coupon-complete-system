@@ -29,7 +29,6 @@ class StoreFactory extends Factory
             'slug' => Str::slug($name),
             'logo_path' => null,
             'about' => $about,
-            'website_url' => 'https://www.'.Str::slug($name).'.com',
             'affiliate_url' => 'https://www.'.Str::slug($name).'.com/?ref=affiliate-demo',
             'expiry_date' => fake()->optional(0.3)->dateTimeBetween('now', '+1 year'),
             'star_rating' => fake()->randomFloat(1, 3.5, 5.0),
@@ -45,7 +44,6 @@ class StoreFactory extends Factory
             'og_title' => "{$name} Promo Codes, Coupons & Deals",
             'og_description' => "Save with the latest verified {$name} coupon codes and deals.",
             'og_image' => null,
-            'canonical_url' => null,
             'robots_index' => true,
             'robots_follow' => true,
         ];

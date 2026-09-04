@@ -17,6 +17,8 @@ class Offer extends Model
         'code',
         'title',
         'is_active',
+        'is_featured',
+        'featured_order',
         'start_date',
         'expiry_date',
         'sort_order',
@@ -28,6 +30,7 @@ class Offer extends Model
     {
         return [
             'is_active' => 'boolean',
+            'is_featured' => 'boolean',
             'start_date' => 'date',
             'expiry_date' => 'datetime',
             'last_used_at' => 'datetime',

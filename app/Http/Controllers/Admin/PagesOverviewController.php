@@ -28,11 +28,12 @@ class PagesOverviewController extends Controller
             ->get()->keyBy('slug');
 
         $pageSettingsByKey = PageSetting::where('region_id', $region->id)->get()->keyBy('page_key');
+        $pathFor = fn (string $pageKey) => '/'.($pageSettingsByKey->get($pageKey)?->slug ?? PageSetting::DEFAULT_SLUGS[$pageKey]);
 
         $rows = [
             [
                 'name' => 'Homepage',
-                'path' => '/',
+                'path' => $pathFor('home'),
                 'is_active' => $pageSettingsByKey->get('home')?->is_active ?? true,
                 'content_edit_route' => route('admin.homepage-sections.index'),
                 'seo_edit_route' => route('admin.page-settings.edit', 'home'),
@@ -59,21 +60,21 @@ class PagesOverviewController extends Controller
             ],
             [
                 'name' => 'Promo Codes',
-                'path' => '/coupons',
+                'path' => $pathFor('coupons'),
                 'is_active' => $pageSettingsByKey->get('coupons')?->is_active ?? true,
                 'content_edit_route' => route('admin.page-settings.edit', 'coupons'),
                 'content_edit_label' => 'Settings',
             ],
             [
                 'name' => 'Stores Listing',
-                'path' => '/stores',
+                'path' => $pathFor('stores'),
                 'is_active' => $pageSettingsByKey->get('stores')?->is_active ?? true,
                 'content_edit_route' => route('admin.page-settings.edit', 'stores'),
                 'content_edit_label' => 'Settings',
             ],
             [
                 'name' => 'Blogs',
-                'path' => '/blogs',
+                'path' => $pathFor('blogs'),
                 'is_active' => $pageSettingsByKey->get('blogs')?->is_active ?? true,
                 'content_edit_route' => route('admin.page-settings.edit', 'blogs'),
                 'content_edit_label' => 'Settings',

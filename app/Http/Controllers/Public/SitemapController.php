@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminSetting;
 use App\Models\Blog;
 use App\Models\Category;
 use App\Models\PageSetting;
@@ -23,10 +24,10 @@ class SitemapController extends Controller
                 $pageSettings = PageSetting::where('region_id', $region->id)->get()->keyBy('page_key');
 
                 $fixedPages = [
-                    'home' => ['loc' => url("/{$region->code}"), 'priority' => '1.0'],
-                    'stores' => ['loc' => url("/{$region->code}/stores"), 'priority' => '0.8'],
-                    'coupons' => ['loc' => url("/{$region->code}/coupons"), 'priority' => '0.8'],
-                    'blogs' => ['loc' => url("/{$region->code}/blogs"), 'priority' => '0.6'],
+                    'home' => ['loc' => PageSetting::urlFor($region, 'home'), 'priority' => '1.0'],
+                    'stores' => ['loc' => PageSetting::urlFor($region, 'stores'), 'priority' => '0.8'],
+                    'coupons' => ['loc' => PageSetting::urlFor($region, 'coupons'), 'priority' => '0.8'],
+                    'blogs' => ['loc' => PageSetting::urlFor($region, 'blogs'), 'priority' => '0.6'],
                 ];
 
                 foreach ($fixedPages as $pageKey => $entry) {
@@ -72,7 +73,7 @@ class SitemapController extends Controller
     {
         $lines = [
             'User-agent: *',
-            'Disallow: /admin',
+            'Disallow: /'.AdminSetting::panelPath(),
             '',
             'Sitemap: '.url('/sitemap.xml'),
         ];

@@ -3,7 +3,11 @@
     $stores/$selectedStore are only passed by the global create/edit forms.
 --}}
 @php
-    $selectedBadgeIds = old('badge_ids', $offer->exists ? $offer->badges->pluck('id')->all() : []);
+    // "Verified" starts pre-checked on the Add Promotion form only — the
+    // edit form always reflects whatever is actually stored.
+    $selectedBadgeIds = old('badge_ids', $offer->exists
+        ? $offer->badges->pluck('id')->all()
+        : $badges->where('name', 'Verified')->pluck('id')->all());
 @endphp
 
 @if (isset($stores))
@@ -77,6 +81,12 @@
             </label>
         @endforeach
     </div>
+    <label class="mt-3 flex items-center gap-2">
+        <input type="checkbox" name="is_featured" value="1"
+               @checked(old('is_featured', $offer->id ? $offer->is_featured : false))
+               class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500">
+        <span class="text-sm text-gray-700">Featured Promotion</span>
+    </label>
 </div>
 
 <label class="flex items-center gap-2">

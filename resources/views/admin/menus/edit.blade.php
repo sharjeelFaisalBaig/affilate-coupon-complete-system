@@ -3,8 +3,9 @@
 @section('title', $menu->name . ' Menu')
 
 @section('content')
-    <div class="mb-4">
+    <div class="mb-4 flex items-center gap-3">
         <a href="{{ route('admin.menus.index') }}" class="text-sm font-medium text-emerald-600 hover:text-emerald-700">&larr; All Menus</a>
+        <span class="rounded-full bg-sky-50 px-2 py-1 text-xs font-medium text-sky-700">{{ \App\Models\Menu::SCOPES[$menu->scope] ?? $menu->scope }}</span>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
@@ -61,7 +62,7 @@
                         <option value="new_tab">New Tab</option>
                     </select>
                 </div>
-                <button type="submit" class="w-full rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600">
+                <button type="submit" class="w-full rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md active:translate-y-0">
                     Add Item
                 </button>
             </form>

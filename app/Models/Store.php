@@ -15,11 +15,11 @@ class Store extends Model
     protected $fillable = [
         'region_id',
         'category_id',
+        'store_suffix_id',
         'name',
         'slug',
         'logo_path',
         'about',
-        'website_url',
         'affiliate_url',
         'expiry_date',
         'star_rating',
@@ -28,6 +28,8 @@ class Store extends Model
         'featured_order',
         'is_popular',
         'popular_order',
+        'is_pending',
+        'pending_order',
         'is_active',
         'meta_title',
         'meta_description',
@@ -35,7 +37,6 @@ class Store extends Model
         'og_image',
         'og_title',
         'og_description',
-        'canonical_url',
         'head_start_script',
         'head_end_script',
         'body_start_script',
@@ -51,6 +52,7 @@ class Store extends Model
             'star_rating' => 'decimal:1',
             'is_featured' => 'boolean',
             'is_popular' => 'boolean',
+            'is_pending' => 'boolean',
             'is_active' => 'boolean',
             'robots_index' => 'boolean',
             'robots_follow' => 'boolean',
@@ -97,6 +99,11 @@ class Store extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function storeSuffix(): BelongsTo
+    {
+        return $this->belongsTo(StoreSuffix::class);
+    }
+
     public function offers(): HasMany
     {
         return $this->hasMany(Offer::class);
@@ -110,12 +117,6 @@ class Store extends Model
     public function deals(): HasMany
     {
         return $this->offers()->where('offer_type', 'deal');
-    }
-
-    public function blogs(): BelongsToMany
-    {
-        return $this->belongsToMany(Blog::class, 'blog_store')
-            ->withPivot('sort_order');
     }
 
     public function scriptInjections(): BelongsToMany

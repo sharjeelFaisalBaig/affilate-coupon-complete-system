@@ -89,7 +89,7 @@
                     <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Related Posts</p>
                     <div class="mt-3 space-y-3">
                         @foreach ($relatedBlogs as $related)
-                            <a href="{{ route('public.blog', [$region->code, $related->slug]) }}" class="flex items-center gap-2 rounded-lg border border-gray-200 p-2 hover:bg-gray-50">
+                            <a href="{{ route('public.blog', [$region->code, $related->slug]) }}" class="flex items-center gap-2 rounded-lg border border-gray-200 p-2 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm">
                                 @if ($related->featured_image)
                                     <img src="{{ Storage::url($related->featured_image) }}" alt="{{ $related->title }}" width="48" height="48" loading="lazy" class="h-12 w-12 shrink-0 rounded object-cover">
                                 @else

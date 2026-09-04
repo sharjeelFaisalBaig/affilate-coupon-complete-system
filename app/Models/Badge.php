@@ -12,12 +12,11 @@ class Badge extends Model
     use HasFactory;
 
     /**
-     * SRS §8/§10 caps the system at exactly 2 badges (its own badge filter
-     * dropdown lists only Verified/Exclusive/All) — kept as plain
-     * admin-editable rows, not protected defaults (SRS only protects them
-     * from deletion while in use, not from renaming/deactivation).
+     * Starting rows seeded per region — an open-ended, admin-editable
+     * taxonomy (no cap on how many can exist), not protected defaults
+     * (only protected from deletion while assigned to an active promotion).
      */
-    public const SEED_NAMES = ['Verified', 'Exclusive'];
+    public const SEED_NAMES = ['Verified', 'Exclusive', 'Top Deals'];
 
     protected $fillable = [
         'region_id',
@@ -56,8 +55,7 @@ class Badge extends Model
     public function classes(): string
     {
         return match ($this->name) {
-            'Top Code' => 'bg-amber-50 text-amber-700',
-            "Editor's Pick" => 'bg-emerald-50 text-emerald-700',
+            'Top Deals' => 'bg-amber-50 text-amber-700',
             'Exclusive' => 'bg-purple-50 text-purple-700',
             'Verified' => 'bg-sky-50 text-sky-700',
             default => 'bg-gray-100 text-gray-700',

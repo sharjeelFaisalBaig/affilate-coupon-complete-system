@@ -5,7 +5,7 @@
 @section('content')
     <div class="mb-4 flex items-center justify-between">
         <p class="text-sm text-gray-500">Promotions are managed one store at a time. Drag rows to reorder how they appear on that store's page.</p>
-        <a href="{{ route('admin.offers.create', ['store_id' => $selectedStore?->id]) }}" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600">
+        <a href="{{ route('admin.offers.create', ['store_id' => $selectedStore?->id]) }}" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md active:translate-y-0">
             + Add Promotion
         </a>
     </div>
@@ -22,7 +22,8 @@
             </div>
             <div>
                 <label class="mb-1 block text-xs font-medium text-gray-500">Search</label>
-                <input type="text" name="q" value="{{ request('q') }}" placeholder="Title, code, feature..."
+                <input type="text" name="q" value="{{ request('q') }}" placeholder="Title, code, feature..." autocomplete="off"
+                       data-autosuggest-endpoint="{{ route('admin.offers.suggest') }}"
                        class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
             </div>
             <div class="flex flex-col justify-end">

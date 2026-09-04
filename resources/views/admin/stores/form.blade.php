@@ -3,7 +3,7 @@
 @section('title', $store->exists ? 'Edit Store' : 'Add Store')
 
 @push('head')
-    @vite(['resources/js/blog-editor.js'])
+    @vite(['resources/js/blog-editor.js', 'resources/js/slug-preview.js', 'resources/js/image-dimension-check.js'])
 @endpush
 
 @section('content')
@@ -17,26 +17,38 @@
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">Store/Brand Name</label>
-                    <input type="text" name="name" value="{{ old('name', $store->name) }}" required maxlength="255"
+                    <input type="text" name="name" value="{{ old('name', $store->name) }}" required maxlength="255" data-slug-source
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     <p class="mt-1 text-xs text-gray-400">Optimal length: ~40 characters. Shown exactly as typed — no prefix/suffix added.</p>
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">Store Slug</label>
-                    <input type="text" name="slug" value="{{ old('slug', $store->slug) }}" placeholder="auto-generated from name if left blank"
+                    <input type="text" name="slug" value="{{ old('slug', $store->slug) }}" placeholder="auto-generated from name if left blank" data-slug-preview
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    <p class="mt-1 text-xs text-gray-400">URI slug, e.g. "amazon".</p>
+                    <p class="mt-1 text-xs text-gray-400">URI slug, e.g. "amazon". Live-previewed from the name above while left blank.</p>
                 </div>
             </div>
 
-            <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700">Category</label>
-                <select name="category_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    <option value="">— None —</option>
-                    @foreach ($categories as $category)
-                        <option value="{{ $category->id }}" @selected(old('category_id', $store->category_id) == $category->id)>{{ $category->name }}</option>
-                    @endforeach
-                </select>
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">Category</label>
+                    <select name="category_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        <option value="">— None —</option>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->id }}" @selected(old('category_id', $store->category_id) == $category->id)>{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">Heading Suffix</label>
+                    <select name="store_suffix_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        <option value="">— None —</option>
+                        @foreach ($storeSuffixes as $storeSuffix)
+                            <option value="{{ $storeSuffix->id }}" @selected(old('store_suffix_id', $store->store_suffix_id) == $storeSuffix->id)>{{ $storeSuffix->name }}</option>
+                        @endforeach
+                    </select>
+                    <p class="mt-1 text-xs text-gray-400">Appended after the store name in the store page heading. Manage options under Taxonomies → Store Suffixes.</p>
+                </div>
             </div>
 
             <div>
@@ -51,17 +63,13 @@
                 @if ($store->logo_path)
                     <img src="{{ Storage::url($store->logo_path) }}" alt="{{ $store->name }}" width="64" height="64" class="mb-2 h-16 w-16 rounded border border-gray-200 object-contain">
                 @endif
-                <input type="file" name="logo" accept="image/*"
+                <input type="file" name="logo" accept="image/*" data-required-width="200" data-required-height="200"
                        class="block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">
                 <p class="mt-1 text-xs text-gray-400">* Required dimensions: exactly 200x200px.</p>
+                <p data-dimension-check-result class="mt-1 text-xs"></p>
             </div>
 
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-700">Website URL</label>
-                    <input type="url" name="website_url" value="{{ old('website_url', $store->website_url) }}"
-                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">Affiliate URL</label>
                     <input type="url" name="affiliate_url" value="{{ old('affiliate_url', $store->affiliate_url) }}" required
@@ -86,12 +94,16 @@
                 </div>
             </div>
 
-            <div class="flex flex-wrap gap-6">
-                <label class="flex items-center gap-2">
-                    <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $store->id ? $store->is_active : true))
-                           class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500">
-                    <span class="text-sm text-gray-700">Published</span>
-                </label>
+            <div class="flex flex-wrap items-center gap-6">
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">Store State</label>
+                    <select name="status" class="block rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        @php $currentStatus = old('status', $store->id ? ($store->is_active ? 'active' : 'pending') : 'active'); @endphp
+                        <option value="active" @selected($currentStatus === 'active')>Active</option>
+                        <option value="pending" @selected($currentStatus === 'pending')>Pending</option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-400">Only Active stores show on the frontend.</p>
+                </div>
                 <label class="flex items-center gap-2">
                     <input type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $store->is_featured))
                            class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500">
@@ -102,7 +114,13 @@
                            class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500">
                     <span class="text-sm text-gray-700">Popular Store</span>
                 </label>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="is_pending" value="1" @checked(old('is_pending', $store->is_pending))
+                           class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500">
+                    <span class="text-sm text-gray-700">Pending Store</span>
+                </label>
             </div>
+            <p class="-mt-3 text-xs text-gray-400">Featured/Popular/Pending are independent curation tags for the Featured &amp; Popular screen (a store can carry any combination) — separate from the Store State above, which controls frontend visibility.</p>
 
             <fieldset class="rounded-md border border-gray-200 p-4">
                 <legend class="px-1 text-sm font-medium text-gray-700">SEO</legend>
@@ -120,11 +138,6 @@
                     <div class="sm:col-span-2">
                         <label class="mb-1 block text-xs font-medium text-gray-500">Meta Description</label>
                         <input type="text" name="meta_description" value="{{ old('meta_description', $store->meta_description) }}"
-                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="mb-1 block text-xs font-medium text-gray-500">Canonical URL</label>
-                        <input type="url" name="canonical_url" value="{{ old('canonical_url', $store->canonical_url) }}"
                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     </div>
                     <div>
@@ -167,10 +180,10 @@
             </fieldset>
 
             <div class="flex gap-3">
-                <button type="submit" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600">
+                <button type="submit" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md active:translate-y-0">
                     {{ $store->exists ? 'Save Changes' : 'Create Store' }}
                 </button>
-                <a href="{{ route('admin.stores.index') }}" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <a href="{{ route('admin.stores.index') }}" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 hover:shadow-sm active:translate-y-0">
                     Cancel
                 </a>
             </div>

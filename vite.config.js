@@ -17,11 +17,19 @@ export default defineConfig({
                 'resources/js/homepage-section-form.js',
                 'resources/js/homepage-section-picker.js',
                 'resources/js/ajax-filters.js',
+                'resources/js/slug-preview.js',
+                'resources/js/image-dimension-check.js',
+                'resources/js/blog-form.js',
+                'resources/js/autosuggest.js',
+                'resources/js/scroll-reveal.js',
             ],
             refresh: true,
             fonts: [
                 bunny('Instrument Sans', {
                     weights: [400, 500, 600],
+                }),
+                bunny('Plus Jakarta Sans', {
+                    weights: [600, 700, 800],
                 }),
             ],
         }),

@@ -47,8 +47,11 @@ class PageSettingController extends Controller
         $region = $request->attributes->get('activeRegion');
 
         $data = $request->validate([
+            'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9-]*$/'],
             'heading' => ['nullable', 'string', 'max:255'],
             'subheading' => ['nullable', 'string', 'max:1000'],
+            'hero_search_placeholder' => ['nullable', 'string', 'max:255'],
+            'hero_search_button_text' => ['nullable', 'string', 'max:50'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string', 'max:255'],
             'og_title' => ['nullable', 'string', 'max:255'],
@@ -59,6 +62,27 @@ class PageSettingController extends Controller
             'body_start_script' => ['nullable', 'string'],
             'body_end_script' => ['nullable', 'string'],
         ]);
+
+        // "" is a real, meaningful value here (serve at the region root),
+        // not "no value" — but Laravel's global ConvertEmptyStringsToNull
+        // middleware already turned a blank field into null before
+        // validation ran, so uniqueness against that real (possibly blank)
+        // string has to be checked by hand rather than via Rule::unique
+        // (which would compare against the wrong, already-nulled value).
+        $data['slug'] = $data['slug'] ?? '';
+
+        $conflict = PageSetting::where('region_id', $region->id)
+            ->where('slug', $data['slug'])
+            ->where('page_key', '!=', $pageKey)
+            ->exists();
+
+        if ($conflict) {
+            $message = $data['slug'] === ''
+                ? 'Another page is already set as this region\'s root — change its slug first.'
+                : 'This URL slug is already used by another page in this region.';
+
+            return back()->withInput()->withErrors(['slug' => $message]);
+        }
 
         $data['is_active'] = $request->boolean('is_active');
         $data['robots_index'] = $request->boolean('robots_index');

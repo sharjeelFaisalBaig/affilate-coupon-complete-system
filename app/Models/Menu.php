@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,9 +17,20 @@ class Menu extends Model
     public const SLOT_FOOTER_CONNECT = 'footer_connect';
     public const SLOT_FOOTER_SHOP = 'footer_shop_coupons';
 
+    public const SCOPE_GLOBAL = 'global';
+    public const SCOPE_BLOG = 'blog';
+
+    public const SCOPES = [
+        self::SCOPE_GLOBAL => 'Global Site Menus',
+        self::SCOPE_BLOG => 'Blog Page Menus',
+    ];
+
     /**
      * Menu instances are fixed by the SRS — admins can add/remove items
-     * within a menu, but never add or remove a menu itself.
+     * within a menu, but never add or remove a menu itself. Each of these 4
+     * exists TWICE per region — once per SCOPES entry — so the blog section
+     * can run its own fully independent header/footer rather than sharing
+     * the rest of the site's.
      */
     public const FIXED_SLOTS = [
         self::SLOT_HEADER => 'Header Menu',
@@ -30,6 +42,7 @@ class Menu extends Model
     protected $fillable = [
         'region_id',
         'slot',
+        'scope',
         'name',
     ];
 
@@ -45,71 +58,92 @@ class Menu extends Model
 
     /**
      * Creates any of the 4 fixed menus that don't yet exist for this region
-     * (used both for fresh-region initialization and to backfill regions
-     * that existed before the Menu Manager module did).
+     * + scope combination (used both for fresh-region initialization and to
+     * backfill regions that existed before the Menu Manager module, or this
+     * scope, did).
      */
-    public static function ensureFixedMenusExist(Region $region): void
+    public static function ensureFixedMenusExist(Region $region, string $scope = self::SCOPE_GLOBAL): void
     {
         foreach (self::FIXED_SLOTS as $slot => $name) {
-            self::firstOrCreate(['region_id' => $region->id, 'slot' => $slot], ['name' => $name]);
+            self::firstOrCreate(['region_id' => $region->id, 'slot' => $slot, 'scope' => $scope], ['name' => $name]);
         }
     }
 
     /**
-     * Seeds each fixed menu's starting links (mirroring the site's original
-     * hardcoded header/footer) — guarded per-menu so it only fills menus
-     * that are still empty, never overwriting an admin's own edits. Without
-     * this, header.blade.php/footer.blade.php render with zero links at
-     * all (no hardcoded fallback exists), so this must run for every region
-     * a fresh install creates, not just ones made through the admin UI.
+     * All 4 of this region's menus for one scope, keyed by slot — the shape
+     * ResolvePublicRegion needs to share header/footer menus that differ
+     * between the blog section and the rest of the site.
+     */
+    public static function forRegionScope(Region $region, string $scope): Collection
+    {
+        return self::where('region_id', $region->id)->where('scope', $scope)->with('items')->get()->keyBy('slot');
+    }
+
+    /**
+     * Seeds each fixed menu's starting links — guarded per-menu so it only
+     * fills menus that are still empty, never overwriting an admin's own
+     * edits. Without this, header.blade.php/footer.blade.php render with
+     * zero links at all (no hardcoded fallback exists), so this must run
+     * for every region a fresh install creates, not just ones made through
+     * the admin UI. Seeds BOTH scopes — the blog scope gets its own
+     * starting content (not a copy of the global one) since the whole point
+     * is a section that reads as its own destination, not an appendage of
+     * the deals site; admins are free to edit either from there.
      */
     public static function seedDefaultItemsFor(Region $region): void
     {
-        self::ensureFixedMenusExist($region);
+        self::ensureFixedMenusExist($region, self::SCOPE_GLOBAL);
+        self::ensureFixedMenusExist($region, self::SCOPE_BLOG);
 
-        $header = self::where('region_id', $region->id)->where('slot', self::SLOT_HEADER)->first();
-        if ($header && $header->items()->doesntExist()) {
-            foreach ([
-                ['title' => 'Promo Codes', 'url' => '/coupons'],
-                ['title' => 'Stores', 'url' => '/stores'],
-                ['title' => 'Blog', 'url' => '/blogs'],
-            ] as $i => $item) {
-                $header->items()->create($item + ['target' => 'same_tab', 'sort_order' => $i + 1]);
-            }
+        self::seedItems($region, self::SCOPE_GLOBAL, self::SLOT_HEADER, [
+            ['title' => 'Promo Codes', 'url' => '/coupons'],
+            ['title' => 'Stores', 'url' => '/stores'],
+            ['title' => 'Blog', 'url' => '/blogs'],
+        ]);
+        self::seedItems($region, self::SCOPE_GLOBAL, self::SLOT_FOOTER_ABOUT, [
+            ['title' => 'Contact Us', 'url' => '/p/contact'],
+            ['title' => 'Terms of Use', 'url' => '/p/terms-of-use'],
+            ['title' => 'Privacy Policy', 'url' => '/p/privacy-policy'],
+        ]);
+        self::seedItems($region, self::SCOPE_GLOBAL, self::SLOT_FOOTER_CONNECT, [
+            ['title' => 'Blog', 'url' => '/blogs', 'target' => 'same_tab'],
+            ['title' => 'Twitter', 'url' => '#', 'target' => 'new_tab'],
+            ['title' => 'Facebook', 'url' => '#', 'target' => 'new_tab'],
+            ['title' => 'Instagram', 'url' => '#', 'target' => 'new_tab'],
+            ['title' => 'LinkedIn', 'url' => '#', 'target' => 'new_tab'],
+        ]);
+        self::seedItems($region, self::SCOPE_GLOBAL, self::SLOT_FOOTER_SHOP, [
+            ['title' => 'Shop Deals', 'url' => '/coupons'],
+            ['title' => 'Stores by Category', 'url' => '/stores'],
+        ]);
+
+        self::seedItems($region, self::SCOPE_BLOG, self::SLOT_HEADER, [
+            ['title' => 'Blog Home', 'url' => '/blogs'],
+        ]);
+        self::seedItems($region, self::SCOPE_BLOG, self::SLOT_FOOTER_ABOUT, [
+            ['title' => 'Contact Us', 'url' => '/p/contact'],
+            ['title' => 'Terms of Use', 'url' => '/p/terms-of-use'],
+            ['title' => 'Privacy Policy', 'url' => '/p/privacy-policy'],
+        ]);
+        self::seedItems($region, self::SCOPE_BLOG, self::SLOT_FOOTER_CONNECT, [
+            ['title' => 'Twitter', 'url' => '#', 'target' => 'new_tab'],
+            ['title' => 'Facebook', 'url' => '#', 'target' => 'new_tab'],
+            ['title' => 'Instagram', 'url' => '#', 'target' => 'new_tab'],
+        ]);
+        self::seedItems($region, self::SCOPE_BLOG, self::SLOT_FOOTER_SHOP, [
+            ['title' => 'Latest Articles', 'url' => '/blogs'],
+        ]);
+    }
+
+    private static function seedItems(Region $region, string $scope, string $slot, array $items): void
+    {
+        $menu = self::where('region_id', $region->id)->where('slot', $slot)->where('scope', $scope)->first();
+        if (! $menu || $menu->items()->exists()) {
+            return;
         }
 
-        $about = self::where('region_id', $region->id)->where('slot', self::SLOT_FOOTER_ABOUT)->first();
-        if ($about && $about->items()->doesntExist()) {
-            foreach ([
-                ['title' => 'Contact Us', 'url' => '/p/contact'],
-                ['title' => 'Terms of Use', 'url' => '/p/terms-of-use'],
-                ['title' => 'Privacy Policy', 'url' => '/p/privacy-policy'],
-            ] as $i => $item) {
-                $about->items()->create($item + ['target' => 'same_tab', 'sort_order' => $i + 1]);
-            }
-        }
-
-        $connect = self::where('region_id', $region->id)->where('slot', self::SLOT_FOOTER_CONNECT)->first();
-        if ($connect && $connect->items()->doesntExist()) {
-            foreach ([
-                ['title' => 'Blog', 'url' => '/blogs', 'target' => 'same_tab'],
-                ['title' => 'Twitter', 'url' => '#', 'target' => 'new_tab'],
-                ['title' => 'Facebook', 'url' => '#', 'target' => 'new_tab'],
-                ['title' => 'Instagram', 'url' => '#', 'target' => 'new_tab'],
-                ['title' => 'LinkedIn', 'url' => '#', 'target' => 'new_tab'],
-            ] as $i => $item) {
-                $connect->items()->create($item + ['sort_order' => $i + 1]);
-            }
-        }
-
-        $shop = self::where('region_id', $region->id)->where('slot', self::SLOT_FOOTER_SHOP)->first();
-        if ($shop && $shop->items()->doesntExist()) {
-            foreach ([
-                ['title' => 'Shop Deals', 'url' => '/coupons'],
-                ['title' => 'Stores by Category', 'url' => '/stores'],
-            ] as $i => $item) {
-                $shop->items()->create($item + ['target' => 'same_tab', 'sort_order' => $i + 1]);
-            }
+        foreach ($items as $i => $item) {
+            $menu->items()->create($item + ['target' => 'same_tab', 'sort_order' => $i + 1]);
         }
     }
 }

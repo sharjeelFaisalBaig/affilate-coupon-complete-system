@@ -1,30 +1,28 @@
 @extends('public.layouts.app')
 
 @section('content')
+    @include('public.partials.page-header', ['heading' => $heading, 'subheading' => $subheading])
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-            <h1 class="text-2xl font-bold text-gray-900">{{ $heading }}</h1>
+        <div class="flex flex-wrap items-center justify-end gap-4">
             <form method="GET" class="flex gap-2">
-                <input type="search" name="q" value="{{ request('q') }}" placeholder="Search articles..."
+                <input type="search" name="q" value="{{ request('q') }}" placeholder="Search articles..." autocomplete="off"
+                       data-autosuggest-endpoint="{{ route('public.suggest.blogs', $region->code) }}"
                        class="rounded-full border border-gray-300 px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
             </form>
         </div>
-        @if ($subheading)
-            <p class="mt-2 text-sm text-gray-500">{{ $subheading }}</p>
-        @endif
 
         <div class="mt-4 flex flex-wrap gap-2">
-            <a href="{{ route('public.blogs', $region->code) }}" class="rounded-full border px-3 py-1 text-xs font-medium {{ !request('category') ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-300 text-gray-600' }}">All</a>
+            <a href="{{ \App\Models\PageSetting::urlFor($region, 'blogs') }}" class="rounded-full border px-3 py-1 text-xs font-medium hover:-translate-y-0.5 {{ !request('category') ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-300 text-gray-600' }}">All</a>
             @foreach ($categories as $category)
-                <a href="{{ route('public.blogs', $region->code) }}?category={{ $category->slug }}"
-                   class="rounded-full border px-3 py-1 text-xs font-medium {{ request('category') === $category->slug ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-300 text-gray-600' }}">
+                <a href="{{ \App\Models\PageSetting::urlFor($region, 'blogs') }}?category={{ $category->slug }}"
+                   class="rounded-full border px-3 py-1 text-xs font-medium hover:-translate-y-0.5 {{ request('category') === $category->slug ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-300 text-gray-600' }}">
                     {{ $category->name }}
                 </a>
             @endforeach
         </div>
 
         @if ($featured)
-            <a href="{{ route('public.blog', [$region->code, $featured->slug]) }}" class="mt-6 flex flex-col gap-4 rounded-xl border border-gray-200 p-4 hover:bg-gray-50 sm:flex-row">
+            <a href="{{ route('public.blog', [$region->code, $featured->slug]) }}" class="card-lift mt-6 flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row">
                 @if ($featured->featured_image)
                     <img src="{{ Storage::url($featured->featured_image) }}" alt="{{ $featured->title }}" width="320" height="180" loading="lazy" class="h-[180px] w-full rounded-lg object-cover sm:w-[320px]">
                 @else
@@ -39,9 +37,9 @@
             </a>
         @endif
 
-        <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div data-reveal class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @forelse ($blogs as $blog)
-                <a href="{{ route('public.blog', [$region->code, $blog->slug]) }}" class="rounded-xl border border-gray-200 p-4 hover:bg-gray-50">
+                <a href="{{ route('public.blog', [$region->code, $blog->slug]) }}" class="card-lift rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                     @if ($blog->featured_image)
                         <img src="{{ Storage::url($blog->featured_image) }}" alt="{{ $blog->title }}" width="400" height="220" loading="lazy" class="mb-3 h-[180px] w-full rounded-lg object-cover">
                     @else

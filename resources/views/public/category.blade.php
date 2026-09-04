@@ -1,9 +1,8 @@
 @extends('public.layouts.app')
 
 @section('content')
+    @include('public.partials.page-header', ['heading' => "Coupons for {$category->name} Stores ".now()->format('Y')])
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <h1 class="text-2xl font-bold text-gray-900">Coupons for {{ $category->name }} Stores {{ now()->format('Y') }}</h1>
-
         <div class="mt-3 flex flex-wrap items-center gap-4">
             <div>
                 <button type="button" data-toggle="#browse-categories" class="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-emerald-600">
@@ -21,7 +20,7 @@
 
         <div class="mt-6 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
             @forelse ($stores as $store)
-                <a href="{{ route('public.store', [$region->code, $store->slug]) }}" class="flex items-center gap-3 border-b border-gray-100 py-3 hover:bg-gray-50">
+                <a href="{{ route('public.store', [$region->code, $store->slug]) }}" class="flex items-center gap-3 rounded-lg border-b border-gray-100 px-2 py-3 hover:translate-x-1 hover:bg-gray-50">
                     @if ($store->logo_path)
                         <img src="{{ Storage::url($store->logo_path) }}" alt="{{ $store->name }}" width="48" height="48" loading="lazy" class="h-12 w-12 shrink-0 rounded object-contain">
                     @else

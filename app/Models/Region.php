@@ -19,6 +19,7 @@ class Region extends Model
         'head_end_script',
         'body_start_script',
         'body_end_script',
+        'canonical_base_url',
         'is_active',
         'is_default',
         'sort_order',
@@ -47,6 +48,19 @@ class Region extends Model
         }
 
         return $this->where('code', $value)->where('is_active', true)->firstOrFail();
+    }
+
+    /**
+     * Every page's <link rel="canonical"> is built from this + the current
+     * path, rather than a hand-typed per-page canonical_url field — admins
+     * were never supposed to type arbitrary canonical URLs per store/blog.
+     * Falls back to the currently-resolved host when left blank.
+     */
+    public function canonicalUrlFor(string $path): string
+    {
+        $base = rtrim($this->canonical_base_url ?: request()->getSchemeAndHttpHost(), '/');
+
+        return $base.'/'.ltrim($path, '/');
     }
 
     public function categories(): HasMany

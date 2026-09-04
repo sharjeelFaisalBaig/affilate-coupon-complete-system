@@ -7,10 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Blog;
 use App\Models\BlogCategory;
 use App\Models\Region;
-use App\Models\Store;
 use App\Support\BlogContentProcessor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -24,7 +24,7 @@ class BlogController extends Controller
         /** @var Region $region */
         $region = $request->attributes->get('activeRegion');
 
-        $blogs = Blog::where('region_id', $region->id)->with('blogCategory')->latest('published_at')->paginate(20);
+        $blogs = Blog::where('region_id', $region->id)->with('blogCategory')->orderBy('sort_order')->get();
 
         return view('admin.blogs.index', compact('blogs'));
     }
@@ -37,8 +37,8 @@ class BlogController extends Controller
         return view('admin.blogs.form', [
             'blog' => new Blog(),
             'blogCategories' => BlogCategory::where('region_id', $region->id)->orderBy('name')->get(),
-            'stores' => Store::where('region_id', $region->id)->orderBy('name')->get(),
-            'selectedStores' => [],
+            'otherBlogs' => Blog::where('region_id', $region->id)->orderBy('title')->get(),
+            'selectedRelatedBlogs' => [],
         ]);
     }
 
@@ -50,13 +50,14 @@ class BlogController extends Controller
         $data = $this->validated($request);
         $data['region_id'] = $region->id;
         $data['slug'] = Str::slug($data['title']);
+        $data['sort_order'] = (Blog::where('region_id', $region->id)->max('sort_order') ?? 0) + 1;
 
         if ($request->hasFile('featured_image')) {
             $data['featured_image'] = $request->file('featured_image')->store('blogs', 'public');
         }
 
         $blog = Blog::create($data);
-        $this->syncRelatedStores($request, $blog);
+        $this->syncRelatedBlogs($request, $blog);
 
         return redirect()->route('admin.blogs.index')->with('status', 'Blog post created.');
     }
@@ -68,8 +69,8 @@ class BlogController extends Controller
         return view('admin.blogs.form', [
             'blog' => $blog,
             'blogCategories' => BlogCategory::where('region_id', $blog->region_id)->orderBy('name')->get(),
-            'stores' => Store::where('region_id', $blog->region_id)->orderBy('name')->get(),
-            'selectedStores' => $blog->relatedStores->pluck('id')->all(),
+            'otherBlogs' => Blog::where('region_id', $blog->region_id)->where('id', '!=', $blog->id)->orderBy('title')->get(),
+            'selectedRelatedBlogs' => $blog->relatedBlogs->pluck('id')->all(),
         ]);
     }
 
@@ -88,7 +89,7 @@ class BlogController extends Controller
         }
 
         $blog->update($data);
-        $this->syncRelatedStores($request, $blog);
+        $this->syncRelatedBlogs($request, $blog);
 
         return redirect()->route('admin.blogs.index')->with('status', 'Blog post updated.');
     }
@@ -106,14 +107,28 @@ class BlogController extends Controller
         return redirect()->route('admin.blogs.index')->with('status', 'Blog post deleted.');
     }
 
-    private function syncRelatedStores(Request $request, Blog $blog): void
+    public function reorder(Request $request): Response
     {
-        $storeIds = collect($request->input('store_ids', []))
-            ->filter(fn ($id) => Store::where('id', $id)->where('region_id', $blog->region_id)->exists())
+        /** @var Region $region */
+        $region = $request->attributes->get('activeRegion');
+
+        $data = $request->validate(['ids' => ['required', 'array']]);
+
+        foreach ($data['ids'] as $index => $id) {
+            Blog::where('id', $id)->where('region_id', $region->id)->update(['sort_order' => $index + 1]);
+        }
+
+        return response()->noContent();
+    }
+
+    private function syncRelatedBlogs(Request $request, Blog $blog): void
+    {
+        $relatedIds = collect($request->input('related_blog_ids', []))
+            ->filter(fn ($id) => (int) $id !== $blog->id && Blog::where('id', $id)->where('region_id', $blog->region_id)->exists())
             ->values();
 
-        $blog->relatedStores()->sync(
-            $storeIds->mapWithKeys(fn ($id, $index) => [$id => ['sort_order' => $index + 1]])->all()
+        $blog->relatedBlogs()->sync(
+            $relatedIds->mapWithKeys(fn ($id, $index) => [$id => ['sort_order' => $index + 1]])->all()
         );
     }
 
@@ -124,13 +139,12 @@ class BlogController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'excerpt' => ['nullable', 'string', 'max:500'],
             'content' => ['required', 'string'],
-            'featured_image' => ['nullable', 'image', 'max:5120'],
+            'featured_image' => ['nullable', 'image', 'max:5120', 'dimensions:width=670,height=300'],
             'author_name' => ['nullable', 'string', 'max:255'],
             'published_at' => ['nullable', 'date'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string', 'max:255'],
             'og_title' => ['nullable', 'string', 'max:255'],
-            'canonical_url' => ['nullable', 'url', 'max:255'],
             'schema_type' => ['required', 'in:Article,BlogPosting'],
             'faqs' => ['nullable', 'array'],
             'faqs.*.question' => ['nullable', 'string', 'max:500'],
@@ -153,7 +167,7 @@ class BlogController extends Controller
         $data['auto_compress_images'] = $request->boolean('auto_compress_images');
         $data['convert_to_webp'] = $request->boolean('convert_to_webp');
         $data['enable_amp'] = $request->boolean('enable_amp');
-        $data['related_stores_auto_link'] = $request->boolean('related_stores_auto_link');
+        $data['auto_link_related_blogs'] = $request->boolean('auto_link_related_blogs');
 
         return $data;
     }

@@ -12,6 +12,20 @@ use Illuminate\View\View;
 
 class BlogController extends Controller
 {
+    public function suggest(Request $request, Region $region): \Illuminate\Http\JsonResponse
+    {
+        $q = $request->string('q')->value();
+
+        $blogs = Blog::where('region_id', $region->id)->where('is_published', true)
+            ->where('title', 'like', "%{$q}%")
+            ->limit(8)->get(['slug', 'title']);
+
+        return response()->json($blogs->map(fn ($blog) => [
+            'label' => $blog->title,
+            'url' => route('public.blog', [$region->code, $blog->slug]),
+        ]));
+    }
+
     public function index(Request $request, Region $region): View
     {
         $query = Blog::where('region_id', $region->id)->where('is_published', true)->with('blogCategory');
@@ -54,18 +68,22 @@ class BlogController extends Controller
         ]);
     }
 
-    public function show(Region $region, string $blogSlug): View
+    public function show(Request $request, Region $region, string $blogSlug): View
     {
         $blog = Blog::where('region_id', $region->id)->where('slug', $blogSlug)->where('is_published', true)
-            ->with(['blogCategory', 'relatedStores'])
+            ->with(['blogCategory', 'relatedBlogs'])
             ->firstOrFail();
 
-        $relatedBlogs = Blog::where('region_id', $region->id)->where('is_published', true)
-            ->where('id', '!=', $blog->id)
-            ->when($blog->blog_category_id, fn ($q) => $q->where('blog_category_id', $blog->blog_category_id))
-            ->orderByDesc('published_at')
-            ->limit(5)
-            ->get();
+        // Auto-link on: same-category posts, most-recently-updated first.
+        // Auto-link off: the admin's own hand-picked, hand-ordered list.
+        $relatedBlogs = $blog->auto_link_related_blogs
+            ? Blog::where('region_id', $region->id)->where('is_published', true)
+                ->where('id', '!=', $blog->id)
+                ->when($blog->blog_category_id, fn ($q) => $q->where('blog_category_id', $blog->blog_category_id))
+                ->orderByDesc('updated_at')
+                ->limit(5)
+                ->get()
+            : $blog->relatedBlogs;
 
         return view('public.blog', [
             'region' => $region,
@@ -74,7 +92,7 @@ class BlogController extends Controller
             'relatedBlogs' => $relatedBlogs,
             'seoTitle' => $blog->meta_title ?: $blog->title,
             'seoDescription' => $blog->meta_description ?: $blog->excerpt,
-            'canonicalUrl' => $blog->canonical_url,
+            'canonicalUrl' => $region->canonicalUrlFor($request->path()),
             'robotsIndex' => $blog->robots_index,
             'robotsFollow' => $blog->robots_follow,
             'ogImage' => $blog->og_image,

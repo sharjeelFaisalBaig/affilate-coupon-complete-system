@@ -10,9 +10,12 @@ class PageSetting extends Model
     protected $fillable = [
         'region_id',
         'page_key',
+        'slug',
         'is_active',
         'heading',
         'subheading',
+        'hero_search_placeholder',
+        'hero_search_button_text',
         'meta_title',
         'meta_description',
         'og_title',
@@ -46,6 +49,42 @@ class PageSetting extends Model
         return static::where('region_id', $regionId)->where('page_key', $pageKey)->first();
     }
 
+    public const DEFAULT_SLUGS = ['home' => '', 'stores' => 'stores', 'coupons' => 'coupons', 'blogs' => 'blogs'];
+
+    /**
+     * The live "/{region}/{slug}" URL for one of the 4 fixed pages, driven
+     * by this row's own (admin-renameable) slug rather than a hardcoded
+     * route path — falls back to the original default segment for a region
+     * that has no row yet (e.g. one seeded before this column existed).
+     */
+    public static function urlFor(Region $region, string $pageKey): string
+    {
+        $slug = static::forPage($region->id, $pageKey)?->slug ?? self::DEFAULT_SLUGS[$pageKey] ?? $pageKey;
+
+        return $slug === '' ? url("/{$region->code}") : url("/{$region->code}/{$slug}");
+    }
+
+    /**
+     * Resolves an incoming URL segment (already stripped of the {region}
+     * prefix) back to one of the 4 fixed page keys for this region — used
+     * by the catch-all page router. Null means no fixed page owns this
+     * segment (a 404, since it also isn't store/category/blog/p/etc., all
+     * of which are matched by their own distinct route prefixes first).
+     */
+    public static function resolveSlug(Region $region, string $slug): ?string
+    {
+        $settings = static::where('region_id', $region->id)->get()->keyBy('page_key');
+
+        foreach (self::DEFAULT_SLUGS as $pageKey => $default) {
+            $actual = $settings->get($pageKey)?->slug ?? $default;
+            if ($actual === $slug) {
+                return $pageKey;
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Seeds real, editable copy (matching each page's hardcoded fallback
      * text) so the admin form shows actual content instead of blank
@@ -58,6 +97,8 @@ class PageSetting extends Model
             'home' => [
                 'heading' => $region->name.' Coupons, Promo Codes & Deals',
                 'subheading' => 'Save today with verified coupon codes, promo codes and deals for top stores in '.$region->name.'.',
+                'hero_search_placeholder' => 'Search for a store or brand...',
+                'hero_search_button_text' => 'Search',
                 'meta_title' => $region->name.' Coupons, Promo Codes & Deals',
                 'meta_description' => 'Save today with verified coupon codes, promo codes and deals for top stores in '.$region->name.'.',
                 'og_title' => $region->name.' Coupons, Promo Codes & Deals',
@@ -92,7 +133,7 @@ class PageSetting extends Model
         foreach ($defaults as $pageKey => $data) {
             self::firstOrCreate(
                 ['region_id' => $region->id, 'page_key' => $pageKey],
-                $data + ['is_active' => true]
+                $data + ['is_active' => true, 'slug' => self::DEFAULT_SLUGS[$pageKey]]
             );
         }
     }

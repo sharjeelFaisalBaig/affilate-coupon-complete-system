@@ -25,7 +25,7 @@
     @stack('schema')
 
     @fonts
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/ajax-filters.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/ajax-filters.js', 'resources/js/autosuggest.js', 'resources/js/scroll-reveal.js'])
     @stack('head')
 
     @include('public.partials.script-injections', ['placement' => 'head_end', 'pageType' => $pageType ?? 'home', 'storeId' => $storeId ?? null])

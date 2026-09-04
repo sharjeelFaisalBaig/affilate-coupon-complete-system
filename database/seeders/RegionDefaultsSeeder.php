@@ -4,9 +4,11 @@ namespace Database\Seeders;
 
 use App\Models\Badge;
 use App\Models\ContactPageAgenda;
+use App\Models\GeneralSetting;
 use App\Models\Menu;
 use App\Models\PageSetting;
 use App\Models\Region;
+use App\Models\StoreSuffix;
 use Illuminate\Database\Seeder;
 
 /**
@@ -28,6 +30,8 @@ class RegionDefaultsSeeder extends Seeder
             Badge::seedDefaultsFor($region);
             ContactPageAgenda::seedDefaultsFor($region);
             PageSetting::seedDefaultsFor($region);
+            StoreSuffix::seedDefaultsFor($region);
+            GeneralSetting::seedDefaultsFor($region);
         });
     }
 }

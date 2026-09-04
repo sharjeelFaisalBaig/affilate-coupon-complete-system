@@ -12,6 +12,22 @@ use Illuminate\View\View;
 
 class PromoCodeController extends Controller
 {
+    public function suggest(Request $request, Region $region): \Illuminate\Http\JsonResponse
+    {
+        $q = $request->string('q')->value();
+
+        $offers = Offer::with('store')
+            ->whereHas('store', fn ($sq) => $sq->where('region_id', $region->id)->visible())
+            ->where('is_active', true)
+            ->where(fn ($oq) => $oq->where('title', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%"))
+            ->limit(8)->get();
+
+        return response()->json($offers->map(fn ($offer) => [
+            'label' => "{$offer->title} — {$offer->store->name}",
+            'url' => route('public.store', [$region->code, $offer->store->slug]),
+        ]));
+    }
+
     public function index(Request $request, Region $region): View
     {
         $settings = PageSetting::forPage($region->id, 'coupons');

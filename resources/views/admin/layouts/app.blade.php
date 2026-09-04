@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') · Coupons Platform Admin</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/drag-sort.js', 'resources/js/offer-form.js', 'resources/js/script-injection-form.js', 'resources/js/faq-builder.js', 'resources/js/homepage-section-form.js', 'resources/js/homepage-section-picker.js', 'resources/js/ajax-filters.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/drag-sort.js', 'resources/js/offer-form.js', 'resources/js/script-injection-form.js', 'resources/js/faq-builder.js', 'resources/js/homepage-section-form.js', 'resources/js/homepage-section-picker.js', 'resources/js/ajax-filters.js', 'resources/js/autosuggest.js'])
     @stack('head')
 </head>
 <body class="h-full text-gray-900 antialiased">
     <div class="flex h-full min-h-screen">
         <!-- Sidebar -->
-        <aside class="hidden w-64 shrink-0 flex-col border-r border-gray-200 bg-white lg:flex">
-            <div class="flex h-16 items-center gap-2 border-b border-gray-200 px-6">
-                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white">
+        <aside class="hidden w-64 shrink-0 flex-col bg-slate-900 lg:flex">
+            <div class="flex h-16 items-center gap-2 border-b border-slate-800 px-6">
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-md shadow-emerald-500/20">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
                 </span>
-                <span class="text-lg font-bold">Coupons<span class="text-emerald-500">CMS</span></span>
+                <span class="font-display text-lg font-bold text-white">Coupons<span class="text-emerald-400">CMS</span></span>
             </div>
 
             <nav class="flex-1 space-y-4 overflow-y-auto px-3 py-4 text-sm">
@@ -39,6 +39,14 @@
                             ],
                         ],
                         [
+                            'label' => 'Stores',
+                            'items' => [
+                                ['label' => 'Add Store', 'route' => 'admin.stores.create', 'match' => 'admin.stores.create'],
+                                ['label' => 'All Stores', 'route' => 'admin.stores.index', 'match' => ['admin.stores.index', 'admin.stores.edit']],
+                                ['label' => 'Featured & Popular', 'route' => 'admin.stores.classification', 'match' => 'admin.stores.classification'],
+                            ],
+                        ],
+                        [
                             'label' => 'Promotion',
                             'items' => [
                                 ['label' => 'Add Promotion', 'route' => 'admin.offers.create', 'match' => 'admin.offers.create'],
@@ -46,16 +54,10 @@
                             ],
                         ],
                         [
-                            'label' => 'Stores',
-                            'items' => [
-                                ['label' => 'Add Store', 'route' => 'admin.stores.create', 'match' => 'admin.stores.create'],
-                                ['label' => 'All Stores', 'route' => 'admin.stores.index', 'match' => ['admin.stores.index', 'admin.stores.edit', 'admin.stores.classification']],
-                            ],
-                        ],
-                        [
                             'label' => 'Taxonomies',
                             'items' => [
                                 ['label' => 'Coupon Features', 'route' => 'admin.badges.index', 'match' => 'admin.badges.*'],
+                                ['label' => 'Store Suffixes', 'route' => 'admin.store-suffixes.index', 'match' => 'admin.store-suffixes.*'],
                             ],
                         ],
                         [
@@ -73,13 +75,15 @@
                             'label' => 'Blog',
                             'items' => [
                                 ['label' => 'Blog Categories', 'route' => 'admin.blog-categories.index', 'match' => 'admin.blog-categories.*'],
-                                ['label' => 'Blogs', 'route' => 'admin.blogs.index', 'match' => 'admin.blogs.*'],
+                                ['label' => 'Add Blog', 'route' => 'admin.blogs.create', 'match' => 'admin.blogs.create'],
+                                ['label' => 'All Blogs', 'route' => 'admin.blogs.index', 'match' => ['admin.blogs.index', 'admin.blogs.edit']],
                             ],
                         ],
                         [
                             'label' => 'Region Settings',
                             'items' => [
-                                ['label' => 'Regions', 'route' => 'admin.regions.index', 'match' => 'admin.regions.*'],
+                                ['label' => 'Add Region', 'route' => 'admin.regions.create', 'match' => 'admin.regions.create'],
+                                ['label' => 'All Regions', 'route' => 'admin.regions.index', 'match' => ['admin.regions.index', 'admin.regions.edit']],
                                 ['label' => 'Menus', 'route' => 'admin.menus.index', 'match' => 'admin.menus.*'],
                                 ['label' => 'General Settings', 'route' => 'admin.general-settings.edit', 'match' => 'admin.general-settings.*'],
                             ],
@@ -95,7 +99,9 @@
                         [
                             'label' => 'Admin',
                             'items' => [
-                                ['label' => 'Users', 'route' => 'admin.users.index', 'match' => 'admin.users.*', 'can' => 'manage-users'],
+                                ['label' => 'Add User', 'route' => 'admin.users.create', 'match' => 'admin.users.create', 'can' => 'manage-users'],
+                                ['label' => 'All Users', 'route' => 'admin.users.index', 'match' => ['admin.users.index', 'admin.users.edit'], 'can' => 'manage-users'],
+                                ['label' => 'Admin Panel URL', 'route' => 'admin.admin-settings.edit', 'match' => 'admin.admin-settings.*', 'can' => 'manage-users'],
                             ],
                         ],
                     ];
@@ -115,12 +121,12 @@
                     @if ($visibleItems->isNotEmpty())
                         <div>
                             @if ($group['label'])
-                                <p class="mb-1 px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">{{ $group['label'] }}</p>
+                                <p class="mb-1 px-3 text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $group['label'] }}</p>
                             @endif
                             <div class="space-y-0.5">
                                 @foreach ($visibleItems as $item)
                                     <a href="{{ route($item['route']) }}"
-                                       class="block rounded-lg px-3 py-2 font-medium {{ request()->routeIs(...(array) $item['match']) ? 'bg-emerald-50 text-emerald-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                                       class="block rounded-lg px-3 py-2 font-medium {{ request()->routeIs(...(array) $item['match']) ? 'bg-emerald-500/15 text-emerald-400 shadow-sm ring-1 ring-inset ring-emerald-500/20' : 'text-slate-300 hover:translate-x-0.5 hover:bg-slate-800 hover:text-white' }}">
                                         {{ $item['label'] }}
                                     </a>
                                 @endforeach
@@ -133,8 +139,8 @@
 
         <div class="flex min-h-screen flex-1 flex-col">
             <!-- Topbar -->
-            <header class="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6">
-                <h1 class="text-lg font-semibold">@yield('title', 'Dashboard')</h1>
+            <header class="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-gray-200 bg-white/95 px-4 shadow-sm backdrop-blur-sm sm:px-6">
+                <h1 class="font-display text-lg font-semibold">@yield('title', 'Dashboard')</h1>
 
                 <div class="flex items-center gap-4">
                     @if(isset($allRegions) && isset($activeRegion))
@@ -154,7 +160,7 @@
                             {{ auth()->user()?->name }}
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
                         </button>
-                        <div id="user-menu" class="hidden absolute right-0 z-50 mt-2 w-40 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
+                        <div id="user-menu" class="animate-fade-in hidden absolute right-0 z-50 mt-2 w-40 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
                             <a href="{{ route('admin.profile.edit') }}" class="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">My Profile</a>
                             <form method="POST" action="{{ route('admin.logout') }}">
                                 @csrf

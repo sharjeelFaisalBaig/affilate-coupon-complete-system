@@ -63,6 +63,13 @@
                 @endforeach
             </fieldset>
 
+            <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700">Canonical Base URL</label>
+                <input type="url" name="canonical_base_url" value="{{ old('canonical_base_url', $region->canonical_base_url) }}" placeholder="https://www.example.com"
+                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                <p class="mt-1 text-xs text-gray-400">Used to build every page's canonical URL (this + the page's path). Leave blank to use the resolved request host.</p>
+            </div>
+
             @if ($region->exists)
                 <label class="flex items-center gap-2">
                     <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $region->is_active)) @disabled($region->is_default)
@@ -75,10 +82,10 @@
             @endif
 
             <div class="flex gap-3">
-                <button type="submit" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600">
+                <button type="submit" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md active:translate-y-0">
                     {{ $region->exists ? 'Save Changes' : 'Create Region' }}
                 </button>
-                <a href="{{ route('admin.regions.index') }}" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <a href="{{ route('admin.regions.index') }}" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 hover:shadow-sm active:translate-y-0">
                     Cancel
                 </a>
             </div>
