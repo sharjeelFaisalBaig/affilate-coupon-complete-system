@@ -109,7 +109,7 @@ class HomepageSectionController extends Controller
         $section->offers()->detach();
         $section->stores()->detach();
 
-        if (in_array($section->content_type, ['coupon', 'deal'])) {
+        if (in_array($section->content_type, ['coupon', 'deal', 'mixed'])) {
             $offerIds = collect($request->input('offer_ids', []))
                 ->filter(fn ($id) => Offer::where('id', $id)->whereHas('store', fn ($q) => $q->where('region_id', $section->region_id))->exists())
                 ->take(HomepageSection::MAX_OFFERS)
@@ -132,7 +132,7 @@ class HomepageSectionController extends Controller
     {
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
-            'content_type' => ['required', 'in:coupon,deal,store'],
+            'content_type' => ['required', 'in:coupon,deal,store,mixed'],
             'cta_label' => ['nullable', 'string', 'max:100'],
             'cta_url' => ['nullable', 'string', 'max:255'],
             'cta_target' => ['required', 'in:same_tab,new_tab'],
@@ -175,7 +175,7 @@ class HomepageSectionController extends Controller
         $region = $request->attributes->get('activeRegion');
 
         $type = $request->string('type')->value();
-        abort_unless(in_array($type, ['coupon', 'deal', 'store'], true), 422);
+        abort_unless(in_array($type, ['coupon', 'deal', 'store', 'mixed'], true), 422);
 
         if ($type === 'store') {
             $query = Store::where('region_id', $region->id)->where('is_active', true);
@@ -196,7 +196,8 @@ class HomepageSectionController extends Controller
             return response()->json(['items' => $items]);
         }
 
-        $query = Offer::with('store')->where('offer_type', $type)->where('is_active', true)
+        $query = Offer::with('store')->where('is_active', true)
+            ->when($type !== 'mixed', fn ($q) => $q->where('offer_type', $type))
             ->whereHas('store', fn ($q) => $q->where('region_id', $region->id));
 
         if ($request->filled('filter_store_id')) {

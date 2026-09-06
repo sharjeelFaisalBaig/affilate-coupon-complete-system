@@ -184,7 +184,21 @@ function initPicker(summaryEl) {
 
     filterFields.forEach((field) => {
         const isText = field.tagName === 'INPUT';
-        field.addEventListener(isText ? 'input' : 'change', () => (isText ? debouncedFetch() : fetchResults()));
+        if (isText) {
+            field.addEventListener('input', debouncedFetch);
+            return;
+        }
+
+        // Select2 sets the underlying <select>'s value and fires the
+        // resulting `change` through jQuery's own event system, which a
+        // plain addEventListener('change', ...) never sees — jQuery is
+        // already global by this point (see select2-init.js), so bind
+        // through it instead for select2-enabled fields.
+        if (window.jQuery) {
+            window.jQuery(field).on('change', fetchResults);
+        } else {
+            field.addEventListener('change', fetchResults);
+        }
     });
 
     function openModal() {

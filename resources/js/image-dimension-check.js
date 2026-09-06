@@ -1,32 +1,43 @@
 /**
- * Real-time client-side image dimension validation: on a file input carrying
- * data-required-width/data-required-height, reads the chosen file's actual
- * pixel dimensions before submit and shows a pass/fail message plus the
- * uploaded dimensions, so the admin doesn't have to submit the form to find
- * out a logo/image is the wrong size. The server-side `dimensions:` rule
- * remains the authoritative guard — this is a helpful preview only.
+ * Real-time client-side image handling for every `<input type="file">` that
+ * accepts images: shows a live thumbnail preview of whatever the admin just
+ * picked (works even on "Add" forms with no existing stored image yet), and
+ * additionally validates pixel dimensions on inputs carrying
+ * data-required-width/data-required-height, showing a pass/fail message
+ * plus the uploaded size. The server-side `dimensions:` rule remains the
+ * authoritative guard — this is a helpful preview only.
  */
-function initImageDimensionCheck() {
-    document.querySelectorAll('input[type="file"][data-required-width]').forEach((input) => {
+function initImagePreviews() {
+    document.querySelectorAll('input[type="file"][accept*="image"]').forEach((input) => {
+        const requiredWidth = input.dataset.requiredWidth ? parseInt(input.dataset.requiredWidth, 10) : null;
+        const requiredHeight = input.dataset.requiredHeight ? parseInt(input.dataset.requiredHeight, 10) : null;
         const result = input.closest('div')?.querySelector('[data-dimension-check-result]');
-        if (!result) return;
 
-        const requiredWidth = parseInt(input.dataset.requiredWidth, 10);
-        const requiredHeight = parseInt(input.dataset.requiredHeight, 10);
+        let preview = input.parentElement.querySelector('[data-live-preview]');
+        if (!preview) {
+            preview = document.createElement('img');
+            preview.setAttribute('data-live-preview', '');
+            preview.className = 'mb-2 hidden h-16 w-16 rounded border border-gray-200 object-contain';
+            input.before(preview);
+        }
 
         input.addEventListener('change', () => {
             const file = input.files?.[0];
             if (!file) {
-                result.textContent = '';
+                preview.classList.add('hidden');
+                if (result) result.textContent = '';
                 return;
             }
 
             const url = URL.createObjectURL(file);
-            const img = new Image();
+            preview.src = url;
+            preview.classList.remove('hidden');
 
+            if (!requiredWidth || !requiredHeight || !result) return;
+
+            const img = new Image();
             img.onload = () => {
                 const { naturalWidth: width, naturalHeight: height } = img;
-                URL.revokeObjectURL(url);
 
                 if (width === requiredWidth && height === requiredHeight) {
                     result.textContent = `Uploaded: ${width}×${height}px — matches the required size.`;
@@ -36,15 +47,9 @@ function initImageDimensionCheck() {
                     result.className = 'mt-1 text-xs text-red-600';
                 }
             };
-
-            img.onerror = () => {
-                URL.revokeObjectURL(url);
-                result.textContent = '';
-            };
-
             img.src = url;
         });
     });
 }
 
-document.addEventListener('DOMContentLoaded', initImageDimensionCheck);
+document.addEventListener('DOMContentLoaded', initImagePreviews);

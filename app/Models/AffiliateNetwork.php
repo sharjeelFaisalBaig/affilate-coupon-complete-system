@@ -13,21 +13,15 @@ class AffiliateNetwork extends Model
     protected $fillable = [
         'region_id',
         'network_name',
-        'tracking_id',
-        'api_key',
-        'api_secret',
+        'script',
+        'placement',
         'is_active',
-        'last_synced_at',
-        'sync_status',
     ];
 
     protected function casts(): array
     {
         return [
-            'api_key' => 'encrypted',
-            'api_secret' => 'encrypted',
             'is_active' => 'boolean',
-            'last_synced_at' => 'datetime',
         ];
     }
 

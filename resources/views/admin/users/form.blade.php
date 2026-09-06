@@ -35,7 +35,7 @@
 
             <div>
                 <label class="mb-1 block text-sm font-medium text-gray-700">Role</label>
-                <select name="role" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                <select name="role" required data-select2-enable class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     <option value="manager" @selected(old('role', $user->role ?? 'manager') === 'manager')>Manager — full access except Users</option>
                     <option value="superadmin" @selected(old('role', $user->role) === 'superadmin')>Superadmin — full access including Users</option>
                 </select>

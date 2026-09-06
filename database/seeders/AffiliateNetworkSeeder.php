@@ -15,11 +15,9 @@ class AffiliateNetworkSeeder extends Seeder
                 AffiliateNetwork::updateOrCreate(
                     ['region_id' => $region->id, 'network_name' => $network],
                     [
-                        'tracking_id' => null,
-                        'api_key' => null,
-                        'api_secret' => null,
+                        'script' => null,
+                        'placement' => 'head_end',
                         'is_active' => false,
-                        'sync_status' => 'pending',
                     ]
                 );
             }

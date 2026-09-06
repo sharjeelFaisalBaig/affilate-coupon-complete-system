@@ -22,7 +22,7 @@ class BlogController extends Controller
 
         return response()->json($blogs->map(fn ($blog) => [
             'label' => $blog->title,
-            'url' => route('public.blog', [$region->code, $blog->slug]),
+            'url' => $blog->urlFor($region),
         ]));
     }
 
@@ -68,11 +68,13 @@ class BlogController extends Controller
         ]);
     }
 
-    public function show(Request $request, Region $region, string $blogSlug): View
+    /**
+     * $blog is already resolved by PageRouterController — see
+     * StoreController::show()'s equivalent docblock for why.
+     */
+    public function show(Request $request, Region $region, Blog $blog): View
     {
-        $blog = Blog::where('region_id', $region->id)->where('slug', $blogSlug)->where('is_published', true)
-            ->with(['blogCategory', 'relatedBlogs'])
-            ->firstOrFail();
+        $blog->load(['blogCategory', 'relatedBlogs']);
 
         // Auto-link on: same-category posts, most-recently-updated first.
         // Auto-link off: the admin's own hand-picked, hand-ordered list.

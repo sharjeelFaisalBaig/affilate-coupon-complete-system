@@ -1,8 +1,14 @@
 {{--
     Expects $stores (Collection<Store>, with category loaded), $reorderUrl,
-    $emptyLabel. Shared by the Featured/Popular/Pending tabs on the
-    classification screen — only the data source and reorder endpoint differ.
+    $emptyLabel, $suggestScope. Shared by the Featured/Popular/Pending tabs on
+    the classification screen — only the data source, reorder endpoint, and
+    suggest scope differ.
 --}}
+<div class="mb-3">
+    <input type="text" data-row-filter placeholder="Search this list..." autocomplete="off"
+           data-autosuggest-endpoint="{{ route('admin.stores.suggest', ['scope' => $suggestScope]) }}"
+           class="block w-full max-w-xs rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:w-64">
+</div>
 <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm" data-reorder-loading-target>
     <table class="w-full text-left text-sm">
         <thead class="border-b border-gray-200 bg-gray-50 text-xs uppercase text-gray-500">

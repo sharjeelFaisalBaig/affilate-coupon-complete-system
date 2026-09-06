@@ -79,8 +79,14 @@ class BadgeController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('badges', 'name')->where('region_id', $region->id)->ignore($badge)],
+            'color' => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
         ]);
 
+        // The <input type="color"> always submits a value (defaults to
+        // #000000 if the admin never touched it) — only actually persist it
+        // when the "use a custom color" checkbox is on, so badges with no
+        // deliberate color choice keep falling back to classes()' presets.
+        $data['color'] = $request->boolean('use_custom_color') ? $data['color'] : null;
         $data['is_active'] = $request->boolean('is_active');
 
         return $data;

@@ -9,7 +9,7 @@
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
-        <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
             <table class="w-full text-left text-sm">
                 <thead class="border-b border-gray-200 bg-gray-50 text-xs uppercase text-gray-500">
                     <tr>
@@ -57,7 +57,7 @@
                 </div>
                 <div>
                     <label class="mb-1 block text-xs font-medium text-gray-500">Target</label>
-                    <select name="target" class="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <select name="target" data-select2-enable class="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         <option value="same_tab">Same Tab</option>
                         <option value="new_tab">New Tab</option>
                     </select>

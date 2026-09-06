@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Edit Offer')
+@section('title', 'Edit Coupon')
 
 @section('content')
     <div class="max-w-2xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm">

@@ -18,7 +18,7 @@
 
             <div>
                 <label class="mb-1 block text-sm font-medium text-gray-700">Placement</label>
-                <select name="placement" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                <select name="placement" required data-select2-enable class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     <option value="head_start" @selected(old('placement', $injection->placement) === 'head_start')>Start of &lt;head&gt;</option>
                     <option value="head_end" @selected(old('placement', $injection->placement) === 'head_end')>End of &lt;head&gt;</option>
                     <option value="body_start" @selected(old('placement', $injection->placement) === 'body_start')>Start of &lt;body&gt;</option>
@@ -56,7 +56,7 @@
 
             <div data-stores-wrapper class="hidden rounded-md border border-gray-200 p-4">
                 <p class="mb-2 text-xs font-medium text-gray-500">Stores</p>
-                <select name="store_ids[]" multiple size="6" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                <select name="store_ids[]" multiple data-select2-enable data-placeholder="Select stores..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     @foreach ($stores as $s)
                         <option value="{{ $s->id }}" @selected(in_array($s->id, old('store_ids', $selectedStores)))>{{ $s->name }}</option>
                     @endforeach

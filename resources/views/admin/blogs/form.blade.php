@@ -3,7 +3,7 @@
 @section('title', $blog->exists ? 'Edit Blog Post' : 'Add Blog Post')
 
 @push('head')
-    @vite(['resources/js/blog-editor.js', 'resources/js/image-dimension-check.js', 'resources/js/blog-form.js'])
+    @vite(['resources/js/blog-editor.js', 'resources/js/slug-preview.js', 'resources/js/image-dimension-check.js', 'resources/js/blog-form.js'])
 @endpush
 
 @section('content')
@@ -17,17 +17,41 @@
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">Title</label>
-                    <input type="text" name="title" value="{{ old('title', $blog->title) }}" required
+                    <input type="text" name="title" value="{{ old('title', $blog->title) }}" required data-slug-source
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                 </div>
                 <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">Blog Slug</label>
+                    <input type="text" name="slug" value="{{ old('slug', $blog->slug) }}" placeholder="auto-generated from title if left blank" data-slug-preview
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <p class="mt-1 text-xs text-gray-400">URL slug, e.g. "my-first-post". Live-previewed from the title above while left blank.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">Blog Category</label>
-                    <select name="blog_category_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <select name="blog_category_id" data-select2-enable data-placeholder="— None —" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         <option value="">— None —</option>
                         @foreach ($blogCategories as $category)
                             <option value="{{ $category->id }}" @selected(old('blog_category_id', $blog->blog_category_id) == $category->id)>{{ $category->name }}</option>
                         @endforeach
                     </select>
+                </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">Slug Prefix</label>
+                    <input type="text" name="route_prefix" value="{{ old('route_prefix', $blog->route_prefix) }}" placeholder="{{ \App\Models\Blog::DEFAULT_ROUTE_PREFIX }}"
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <p class="mt-1 text-xs text-gray-400">The path segment before the slug — e.g. "articles". Leave blank for the default "{{ \App\Models\Blog::DEFAULT_ROUTE_PREFIX }}".</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">Suffix</label>
+                    <input type="text" name="route_suffix" value="{{ old('route_suffix', $blog->route_suffix) }}" placeholder="optional"
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <p class="mt-1 text-xs text-gray-400">Optional trailing path segment after the slug.</p>
                 </div>
             </div>
 
@@ -79,7 +103,7 @@
 
             <div data-related-blogs-picker @if (old('auto_link_related_blogs', $blog->id ? $blog->auto_link_related_blogs : true)) class="hidden" @endif>
                 <label class="mb-1 block text-sm font-medium text-gray-700">Related Blogs</label>
-                <select name="related_blog_ids[]" multiple size="6" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                <select name="related_blog_ids[]" multiple data-select2-enable data-placeholder="Select related blogs..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     @foreach ($otherBlogs as $other)
                         <option value="{{ $other->id }}" @selected(in_array($other->id, old('related_blog_ids', $selectedRelatedBlogs)))>{{ $other->title }}</option>
                     @endforeach
@@ -142,7 +166,7 @@
                     </div>
                     <div>
                         <label class="mb-1 block text-xs font-medium text-gray-500">Schema Type</label>
-                        <select name="schema_type" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        <select name="schema_type" data-select2-enable class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                             <option value="BlogPosting" @selected(old('schema_type', $blog->schema_type ?? 'BlogPosting') === 'BlogPosting')>BlogPosting</option>
                             <option value="Article" @selected(old('schema_type', $blog->schema_type) === 'Article')>Article</option>
                         </select>

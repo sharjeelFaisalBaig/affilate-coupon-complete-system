@@ -15,17 +15,17 @@
     </div>
 
     <div data-ajax-filter data-base-url="{{ route('admin.stores.index') }}">
-        <form data-ajax-filter-form class="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <form data-ajax-filter-form class="mb-4 flex flex-col gap-2 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:flex-wrap sm:items-center">
             <input type="text" name="q" value="{{ request('q') }}" placeholder="Search store name..." autocomplete="off"
                    data-autosuggest-endpoint="{{ route('admin.stores.suggest') }}"
-                   class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-            <select name="category_id" class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                   class="w-full min-w-0 rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:w-auto">
+            <select name="category_id" data-select2-enable data-placeholder="All Categories" class="w-full min-w-0 rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:w-auto">
                 <option value="">All Categories</option>
                 @foreach ($categories as $category)
                     <option value="{{ $category->id }}" @selected(request('category_id') == $category->id)>{{ $category->name }}</option>
                 @endforeach
             </select>
-            <select name="status" class="rounded-md border-gray-300 py-2.5 text-sm focus:border-emerald-500 focus:ring-emerald-500">
+            <select name="status" data-select2-enable class="w-full min-w-0 rounded-md border-gray-300 py-2.5 text-sm focus:border-emerald-500 focus:ring-emerald-500 sm:w-auto">
                 <option value="">All Statuses</option>
                 <option value="active" @selected(request('status') === 'active')>Active</option>
                 <option value="inactive" @selected(request('status') === 'inactive')>Pending</option>

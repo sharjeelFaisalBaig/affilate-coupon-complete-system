@@ -49,6 +49,22 @@ class CategoryController extends Controller
         return view('admin.categories.index', compact('categories'));
     }
 
+    public function suggest(Request $request): \Illuminate\Http\JsonResponse
+    {
+        /** @var Region $region */
+        $region = $request->attributes->get('activeRegion');
+        $q = $request->string('q')->value();
+
+        $categories = Category::where('region_id', $region->id)->where('type', self::TYPE)
+            ->where('name', 'like', "%{$q}%")
+            ->orderBy('name')->limit(8)->get(['id', 'name']);
+
+        return response()->json($categories->map(fn ($category) => [
+            'label' => $category->name,
+            'url' => route('admin.categories.edit', $category),
+        ]));
+    }
+
     public function create(): View
     {
         return view('admin.categories.form', [

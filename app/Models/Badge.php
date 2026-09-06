@@ -21,6 +21,7 @@ class Badge extends Model
     protected $fillable = [
         'region_id',
         'name',
+        'color',
         'is_active',
     ];
 
@@ -49,8 +50,11 @@ class Badge extends Model
     }
 
     /**
-     * Purely presentational — the 4 seeded names get their historical pill
-     * colors, anything custom an admin adds falls back to a neutral style.
+     * Purely presentational — the 3 seeded names get their historical pill
+     * colors as a Tailwind class fallback for badges with no admin-picked
+     * color; anything custom (including a custom color on a seeded name)
+     * renders via inline style() instead, so classes() and style() are
+     * mutually exclusive in the view (see offer-card* partials).
      */
     public function classes(): string
     {
@@ -60,5 +64,19 @@ class Badge extends Model
             'Verified' => 'bg-sky-50 text-sky-700',
             default => 'bg-gray-100 text-gray-700',
         };
+    }
+
+    /**
+     * Inline pill style built from the admin-picked hex color — a light
+     * tint background + the full color for text/border, matching the same
+     * visual weight as the classes() Tailwind pairs above.
+     */
+    public function style(): ?string
+    {
+        if (! $this->color) {
+            return null;
+        }
+
+        return "background-color: {$this->color}1a; color: {$this->color}; border: 1px solid {$this->color}4d;";
     }
 }

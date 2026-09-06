@@ -18,11 +18,11 @@ class StoreDirectoryController extends Controller
 
         $stores = Store::where('region_id', $region->id)->visible()
             ->where('name', 'like', "%{$q}%")
-            ->orderBy('name')->limit(8)->get(['slug', 'name']);
+            ->orderBy('name')->limit(8)->get(['slug', 'name', 'route_prefix', 'route_suffix']);
 
         return response()->json($stores->map(fn ($store) => [
             'label' => $store->name,
-            'url' => route('public.store', [$region->code, $store->slug]),
+            'url' => $store->urlFor($region),
         ]));
     }
 
@@ -52,7 +52,7 @@ class StoreDirectoryController extends Controller
         // Row 2's paginated/filtered grid — grouped by first letter, with
         // letters that have zero stores omitted entirely.
         $directory = Store::where('region_id', $region->id)->visible()
-            ->orderBy('name')->get(['name', 'slug'])
+            ->orderBy('name')->get(['name', 'slug', 'route_prefix', 'route_suffix'])
             ->groupBy(fn ($store) => mb_strtoupper(mb_substr($store->name, 0, 1)));
 
         $settings = PageSetting::forPage($region->id, 'stores');

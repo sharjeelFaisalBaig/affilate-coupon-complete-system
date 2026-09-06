@@ -78,6 +78,7 @@ Route::prefix(AdminSetting::panelPath())->name('admin.')->group(function () {
         Route::resource('badges', BadgeController::class)->except('show');
         Route::resource('store-suffixes', StoreSuffixController::class)->except('show');
 
+        Route::get('categories/suggest', [CategoryController::class, 'suggest'])->name('categories.suggest');
         Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
         Route::resource('categories', CategoryController::class)->except('show');
 

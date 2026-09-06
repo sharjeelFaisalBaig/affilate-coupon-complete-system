@@ -3,19 +3,26 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\Blog;
 use App\Models\PageSetting;
 use App\Models\Region;
+use App\Models\Store;
 use Illuminate\Http\Request;
 
 /**
- * Catch-all for the 4 fixed pages (home/stores/coupons/blogs) whose URL
- * segment is admin-renameable per region via PageSetting.slug — registered
- * last in the {region} route group (routes/web.php) so the more specific
- * routes (store/{slug}, category/{slug}, blog/{slug}, p/{slug}, etc.)
- * always match first. Resolves the incoming segment back to a page key and
- * forwards to that page's own existing controller, whose logic is otherwise
- * unchanged — this is purely a routing indirection, not a rewrite of any
- * page's behavior.
+ * Catch-all for every URL whose path isn't one of the other few fixed
+ * literal prefixes (category/{slug}, p/{slug}, suggest/*, contact, go/{offer})
+ * — registered last in the {region} route group (routes/web.php) so those
+ * always match first. Resolves the incoming path against, in order:
+ *   1. one of the 4 fixed pages (home/stores/coupons/blogs), whose own URL
+ *      segment is admin-renameable per region via PageSetting.slug;
+ *   2. a store, whose "{prefix}/{slug}[/{suffix}]" path is admin-renameable
+ *      PER STORE via Store.route_prefix/route_suffix;
+ *   3. a blog post, same idea via Blog.route_prefix/route_suffix.
+ * Store/blog detail no longer have their own fixed "store/{slug}" /
+ * "blog/{slug}" routes — those prefixes are just each entity's *default*
+ * now, not a route literal, so resolution has to happen here instead of at
+ * the router level.
  */
 class PageRouterController extends Controller
 {
@@ -29,8 +36,18 @@ class PageRouterController extends Controller
     public function __invoke(Request $request, Region $region, string $slug = '')
     {
         $pageKey = PageSetting::resolveSlug($region, $slug);
-        abort_if($pageKey === null, 404);
+        if ($pageKey !== null) {
+            return app()->call([app(self::CONTROLLERS[$pageKey]), 'index'], ['region' => $region]);
+        }
 
-        return app()->call([app(self::CONTROLLERS[$pageKey]), 'index'], ['region' => $region]);
+        if ($store = Store::resolveByPath($region, $slug)) {
+            return app()->call([app(StoreController::class), 'show'], ['region' => $region, 'store' => $store]);
+        }
+
+        if ($blog = Blog::resolveByPath($region, $slug)) {
+            return app()->call([app(BlogController::class), 'show'], ['region' => $region, 'blog' => $blog]);
+        }
+
+        abort(404);
     }
 }

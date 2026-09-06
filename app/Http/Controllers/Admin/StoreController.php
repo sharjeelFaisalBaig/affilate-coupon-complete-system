@@ -57,8 +57,19 @@ class StoreController extends Controller
         $region = $request->attributes->get('activeRegion');
         $q = $request->string('q')->value();
 
-        $stores = Store::where('region_id', $region->id)->where('name', 'like', "%{$q}%")
-            ->orderBy('name')->limit(8)->get(['id', 'name']);
+        $query = Store::where('region_id', $region->id)->where('name', 'like', "%{$q}%");
+
+        // The classification screen's Featured/Popular/Pending tabs each pass
+        // their own `scope` so a suggestion never leaks in from a different
+        // tab's dataset — matching the row-filter's existing per-tab scoping.
+        match ($request->string('scope')->value()) {
+            'featured' => $query->where('is_featured', true),
+            'popular' => $query->where('is_popular', true),
+            'pending' => $query->where('is_pending', true),
+            default => null,
+        };
+
+        $stores = $query->orderBy('name')->limit(8)->get(['id', 'name']);
 
         return response()->json($stores->map(fn ($store) => [
             'label' => $store->name,
@@ -252,6 +263,8 @@ class StoreController extends Controller
                 'nullable', 'string', 'max:255', 'alpha_dash',
                 Rule::unique('stores', 'slug')->where('region_id', $region->id)->ignore($store),
             ],
+            'route_prefix' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9-]+(\/[a-z0-9-]+)*$/', $this->notReservedPrefix()],
+            'route_suffix' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9-]+(\/[a-z0-9-]+)*$/'],
             'about' => ['nullable', 'string'],
             'store_suffix_id' => [
                 'nullable',
@@ -284,6 +297,27 @@ class StoreController extends Controller
         $data['robots_follow'] = $request->boolean('robots_follow');
 
         return $data;
+    }
+
+    /**
+     * The prefix's first segment must not collide with one of the other
+     * fixed literal route prefixes registered ahead of the catch-all
+     * (category/p/suggest/go/contact) — a store whose prefix collided
+     * would never actually be reachable, since those routes always match
+     * first.
+     */
+    private function notReservedPrefix(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail) {
+            if (! $value) {
+                return;
+            }
+
+            $first = strtolower(explode('/', trim($value, '/'))[0]);
+            if (in_array($first, ['category', 'p', 'suggest', 'go', 'contact'], true)) {
+                $fail("The prefix can't start with \"{$first}\" — that path is already used elsewhere on the site.");
+            }
+        };
     }
 
     private function uniqueSlug(string $name, int $regionId, ?int $exceptId = null): string

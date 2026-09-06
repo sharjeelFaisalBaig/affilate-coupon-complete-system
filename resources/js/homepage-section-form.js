@@ -7,6 +7,7 @@ function syncHomepageSectionForm(form) {
     const wrappers = {
         coupon: form.querySelector('[data-picker="coupon"]'),
         deal: form.querySelector('[data-picker="deal"]'),
+        mixed: form.querySelector('[data-picker="mixed"]'),
         store: form.querySelector('[data-picker="store"]'),
     };
     if (!typeInputs.length) return;

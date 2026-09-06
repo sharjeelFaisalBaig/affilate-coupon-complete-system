@@ -71,19 +71,9 @@ class AffiliateNetworkController extends Controller
     {
         $data = $request->validate([
             'network_name' => ['required', 'string', 'max:255'],
-            'tracking_id' => ['nullable', 'string', 'max:255'],
-            'api_key' => ['nullable', 'string', 'max:1000'],
-            'api_secret' => ['nullable', 'string', 'max:1000'],
-            'sync_status' => ['required', 'in:pending,synced,failed'],
+            'script' => ['nullable', 'string'],
+            'placement' => ['required', 'in:head_start,head_end,body_start,body_end'],
         ]);
-
-        // Blank means "leave unchanged" for secrets already on file.
-        if ($data['api_key'] === null || $data['api_key'] === '') {
-            unset($data['api_key']);
-        }
-        if ($data['api_secret'] === null || $data['api_secret'] === '') {
-            unset($data['api_secret']);
-        }
 
         $data['is_active'] = $request->boolean('is_active');
 

@@ -3,7 +3,7 @@
 @section('title', 'General Settings')
 
 @push('head')
-    @vite(['resources/js/blog-editor.js'])
+    @vite(['resources/js/blog-editor.js', 'resources/js/image-dimension-check.js'])
 @endpush
 
 @section('content')

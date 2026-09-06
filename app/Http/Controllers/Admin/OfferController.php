@@ -74,6 +74,7 @@ class OfferController extends Controller
         $offers = Offer::with('store')
             ->whereHas('store', fn ($sq) => $sq->where('region_id', $region->id))
             ->where(fn ($oq) => $oq->where('title', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%"))
+            ->when($request->string('scope')->value() === 'featured', fn ($q) => $q->where('is_featured', true))
             ->limit(8)->get();
 
         return response()->json($offers->map(fn ($offer) => [
@@ -192,7 +193,7 @@ class OfferController extends Controller
             'clicks' => ['nullable', 'integer', 'min:0'],
             'start_date' => ['nullable', 'date'],
             'expiry_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'badge_ids' => ['nullable', 'array', 'max:2'],
+            'badge_ids' => ['nullable', 'array', 'max:3'],
             'badge_ids.*' => [Rule::exists('badges', 'id')->where('region_id', $region->id)],
         ]);
 

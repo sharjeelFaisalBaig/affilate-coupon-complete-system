@@ -4,63 +4,70 @@
 @php
     $store = $offer->store;
     $thumbnailPath = $store->logo_path;
-    $badgeItems = collect();
-    if ($offer->isVerified()) {
-        $badgeItems->push(['label' => 'Verified', 'classes' => 'bg-sky-50 text-sky-700', 'check' => true]);
-    }
-    foreach ($offer->badges->where('name', '!=', 'Verified') as $badge) {
-        $badgeItems->push(['label' => $badge->name, 'classes' => $badge->classes(), 'check' => false]);
-    }
+    $badgeItems = $offer->badges->sortBy(fn ($b) => $b->name === 'Verified' ? 0 : 1)->values();
     $isCoupon = $offer->isCoupon();
     $redirectUrl = route('public.offer.redirect', [$region->code, $offer]);
+    $accent = $isCoupon ? 'from-emerald-500 to-teal-500' : 'from-deal-500 to-deal-700';
+    $ctaClasses = $isCoupon
+        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:shadow-emerald-500/30'
+        : 'bg-gradient-to-r from-deal-500 to-deal-700 hover:shadow-deal-500/30';
 @endphp
-<div class="card-lift flex cursor-pointer flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
-     @if ($isCoupon) data-coupon-cta data-offer-id="{{ $offer->id }}" data-redirect-url="{{ $redirectUrl }}"
-     @else data-deal-cta data-redirect-url="{{ $redirectUrl }}" @endif>
-    @if ($thumbnailPath)
-        <img src="{{ Storage::url($thumbnailPath) }}" alt="{{ $store->name }}" width="72" height="28" loading="lazy" class="h-7 max-w-[100px] object-contain">
-    @else
-        @include('public.partials.placeholder-image', ['class' => 'h-7 w-16 rounded'])
-    @endif
+<div data-reveal class="card-lift group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm hover:border-transparent"
+     @if ($isCoupon) data-coupon-cta @else data-deal-cta @endif data-offer-id="{{ $offer->id }}" data-redirect-url="{{ $redirectUrl }}">
+    <div class="h-1.5 shrink-0 bg-gradient-to-r {{ $accent }}"></div>
 
-    <p class="mt-3 text-lg font-bold text-gray-900">{{ $offer->title }}</p>
+    <div class="flex flex-1 flex-col p-4">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-100 bg-white shadow-sm ring-1 ring-gray-100 transition-transform duration-300 group-hover:scale-110">
+            @if ($thumbnailPath)
+                <img src="{{ Storage::url($thumbnailPath) }}" alt="{{ $store->name }}" width="44" height="44" loading="lazy" class="h-full w-full object-contain p-1">
+            @else
+                @include('public.partials.placeholder-image', ['class' => 'h-full w-full', 'iconClass' => 'h-4 w-4'])
+            @endif
+        </span>
 
-    {{-- Each badge on its own line — 2 badges side-by-side reads as noise. --}}
-    @if ($badgeItems->isNotEmpty())
-        <div class="mt-1 flex flex-col items-start gap-1">
-            @foreach ($badgeItems as $badge)
-                <span class="rounded px-1.5 py-0.5 text-xs font-medium {{ $badge['classes'] }}">
-                    @if ($badge['check']) &check; @endif{{ $badge['label'] }}
-                </span>
-            @endforeach
-        </div>
-    @endif
+        <p class="mt-3 text-lg font-bold leading-snug text-gray-900">{{ $offer->title }}</p>
 
-    <p class="mt-1 flex-1 text-sm text-gray-600">At {{ $store->name }}</p>
-
-    @if ($offer->expiry_date)
-        <p class="mt-1 text-xs text-gray-400">Expires {{ $offer->expiry_date->format('M j, Y') }}</p>
-    @endif
-
-    <a href="{{ route('public.store', [$region->code, $store->slug]) }}" onclick="event.stopPropagation()" class="mt-2 text-xs text-gray-700 underline hover:text-emerald-600">
-        More {{ $store->name }} {{ $isCoupon ? 'coupons' : 'deals' }}
-    </a>
-
-    <p class="mt-1 text-xs text-gray-400">{{ $offer->usageLabel() }}</p>
-
-    <div class="mt-3">
-        @if ($isCoupon)
-            <button type="button" class="block w-full rounded-md bg-emerald-500 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md">
-                Shop with code
-            </button>
-        @else
-            <span class="block w-full rounded-md bg-sky-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-md">
-                View Deal
-            </span>
+        {{-- Features render in one wrapped row --}}
+        @if ($badgeItems->isNotEmpty())
+            <div class="mt-2 flex flex-row flex-wrap items-center gap-1.5">
+                @foreach ($badgeItems as $badge)
+                    <span class="rounded-full px-2 py-0.5 text-xs font-semibold {{ $badge->style() ? '' : $badge->classes() }}" @if ($badge->style()) style="{{ $badge->style() }}" @endif>
+                        @if ($badge->name === 'Verified') &check; @endif{{ $badge->name }}
+                    </span>
+                @endforeach
+            </div>
         @endif
+
+        <p class="mt-2 flex-1 text-sm text-gray-500">At <span class="font-medium text-gray-700">{{ $store->name }}</span></p>
+
+        @if ($offer->expiry_date)
+            <p class="mt-1 flex items-center gap-1 text-xs text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .199.079.39.22.53l3.5 3.5a.75.75 0 101.06-1.06L10.75 9.69V5z" clip-rule="evenodd" /></svg>
+                Expires {{ $offer->expiry_date->format('M j, Y') }}
+            </p>
+        @endif
+
+        <a href="{{ $store->urlFor($region) }}" onclick="event.stopPropagation()" class="link-underline mt-2 text-xs text-gray-500 hover:text-emerald-600">
+            More {{ $store->name }} {{ $isCoupon ? 'coupons' : 'deals' }}
+        </a>
+
+        <p class="mt-1 flex items-center gap-1 text-xs text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5"><path d="M10 2a1 1 0 011 1v1.05a7.001 7.001 0 015.95 5.95H18a1 1 0 110 2h-1.05A7.001 7.001 0 0111 16.95V18a1 1 0 11-2 0v-1.05A7.001 7.001 0 013.05 11H2a1 1 0 110-2h1.05A7.001 7.001 0 019 3.05V2a1 1 0 011-1zm0 4a5 5 0 100 10 5 5 0 000-10z" /></svg>
+            {{ $offer->usageLabel() }}
+        </p>
+
+        <div class="ticket-notch mt-3 pt-3">
+            @if ($isCoupon)
+                <button type="button" class="btn-shine block w-full rounded-full px-4 py-2 text-center text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg {{ $ctaClasses }}">
+                    Shop with code
+                </button>
+            @else
+                <span class="btn-shine block w-full rounded-full px-4 py-2 text-center text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg {{ $ctaClasses }}">
+                    View Deal
+                </span>
+            @endif
+        </div>
     </div>
 </div>
 
-@if ($isCoupon)
-    @include('public.partials.offer-modal', ['offer' => $offer, 'store' => $store, 'redirectUrl' => $redirectUrl])
-@endif
+@include('public.partials.offer-modal', ['offer' => $offer, 'store' => $store, 'redirectUrl' => $redirectUrl])

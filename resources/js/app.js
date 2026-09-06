@@ -58,21 +58,24 @@ function initModals() {
     });
 }
 
-// [data-coupon-cta][data-redirect-url][data-offer-id] click behavior:
+// [data-coupon-cta OR data-deal-cta][data-redirect-url][data-offer-id] click
+// behavior — identical for both coupons and deals:
 //   1. The CURRENT tab navigates to the merchant via our tracked redirect
 //      (same-tab, so the click counter increments before the shopper leaves).
 //   2. A NEW tab opens pointing back at our own page with a `revealOffer`
 //      query flag — the new tab gets browser focus (standard behavior for
-//      window.open from a user gesture) and auto-shows the code modal via
-//      initRevealFromQueryString() below, so the shopper lands looking at
-//      the code instead of having to switch tabs to find it.
-function initCouponCta() {
+//      window.open from a user gesture) and auto-shows the offer modal via
+//      initRevealFromQueryString() below. For a coupon that modal shows the
+//      code + copy button; for a deal (which never has a code) the same
+//      modal shows "No Code Required" in that slot instead — see
+//      offer-modal.blade.php.
+function initOfferCta() {
     document.addEventListener('click', (event) => {
-        const button = event.target.closest('[data-coupon-cta]');
-        if (!button) return;
+        const el = event.target.closest('[data-coupon-cta], [data-deal-cta]');
+        if (!el) return;
 
-        const redirectUrl = button.getAttribute('data-redirect-url');
-        const offerId = button.getAttribute('data-offer-id');
+        const redirectUrl = el.getAttribute('data-redirect-url');
+        const offerId = el.getAttribute('data-offer-id');
 
         if (offerId) {
             const revealUrl = new URL(window.location.href);
@@ -86,21 +89,7 @@ function initCouponCta() {
     });
 }
 
-// [data-deal-cta][data-redirect-url] click behavior: the whole card is the
-// click target (SRS: cards are fully clickable, not just their button), but
-// a deal has no code-reveal modal — it just opens the affiliate link in a
-// new focused tab, same as the plain <a target="_blank"> this replaced.
-function initDealCta() {
-    document.addEventListener('click', (event) => {
-        const card = event.target.closest('[data-deal-cta]');
-        if (!card) return;
-
-        const redirectUrl = card.getAttribute('data-redirect-url');
-        if (redirectUrl) window.open(redirectUrl, '_blank', 'noopener');
-    });
-}
-
-// On load, if the URL carries ?revealOffer=ID (see initCouponCta above),
+// On load, if the URL carries ?revealOffer=ID (see initOfferCta above),
 // open that offer's modal immediately without requiring another click.
 function initRevealFromQueryString() {
     const offerId = new URLSearchParams(window.location.search).get('revealOffer');
@@ -159,12 +148,27 @@ function initTabs() {
     });
 }
 
+// Adds a deepening shadow to the sticky public header once the page has
+// scrolled past the hero — a flat border reads fine at the very top, but
+// looks disconnected from scrolled-under content without one.
+function initHeaderScrollShadow() {
+    const header = document.querySelector('[data-site-header]');
+    if (!header) return;
+
+    const sync = () => {
+        header.classList.toggle('shadow-md', window.scrollY > 8);
+    };
+
+    window.addEventListener('scroll', sync, { passive: true });
+    sync();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initToggles();
     initModals();
-    initCouponCta();
-    initDealCta();
+    initOfferCta();
     initRevealFromQueryString();
     initCopyButtons();
     initTabs();
+    initHeaderScrollShadow();
 });

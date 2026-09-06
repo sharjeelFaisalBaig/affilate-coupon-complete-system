@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class BlogController extends Controller
@@ -49,7 +50,7 @@ class BlogController extends Controller
 
         $data = $this->validated($request);
         $data['region_id'] = $region->id;
-        $data['slug'] = Str::slug($data['title']);
+        $data['slug'] = $data['slug'] ?: $this->uniqueSlug($data['title'], $region->id);
         $data['sort_order'] = (Blog::where('region_id', $region->id)->max('sort_order') ?? 0) + 1;
 
         if ($request->hasFile('featured_image')) {
@@ -78,8 +79,14 @@ class BlogController extends Controller
     {
         $this->abortUnlessOwnedByActiveRegion($request, $blog->region_id);
 
-        $data = $this->validated($request);
-        $data['slug'] = Str::slug($data['title']);
+        $data = $this->validated($request, $blog);
+        if ($data['slug']) {
+            // Admin explicitly typed a slug — already validated unique below.
+        } elseif ($data['title'] !== $blog->title) {
+            $data['slug'] = $this->uniqueSlug($data['title'], $blog->region_id, $blog->id);
+        } else {
+            unset($data['slug']);
+        }
 
         if ($request->hasFile('featured_image')) {
             if ($blog->featured_image) {
@@ -121,6 +128,39 @@ class BlogController extends Controller
         return response()->noContent();
     }
 
+    /** See Admin\StoreController::notReservedPrefix() for the rationale. */
+    private function notReservedPrefix(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail) {
+            if (! $value) {
+                return;
+            }
+
+            $first = strtolower(explode('/', trim($value, '/'))[0]);
+            if (in_array($first, ['category', 'p', 'suggest', 'go', 'contact'], true)) {
+                $fail("The prefix can't start with \"{$first}\" — that path is already used elsewhere on the site.");
+            }
+        };
+    }
+
+    /** See Admin\StoreController::uniqueSlug() for the rationale. */
+    private function uniqueSlug(string $title, int $regionId, ?int $exceptId = null): string
+    {
+        $base = Str::slug($title);
+        $slug = $base;
+        $suffix = 1;
+
+        while (
+            Blog::where('region_id', $regionId)->where('slug', $slug)
+                ->when($exceptId, fn ($q) => $q->where('id', '!=', $exceptId))
+                ->exists()
+        ) {
+            $slug = "{$base}-".++$suffix;
+        }
+
+        return $slug;
+    }
+
     private function syncRelatedBlogs(Request $request, Blog $blog): void
     {
         $relatedIds = collect($request->input('related_blog_ids', []))
@@ -132,11 +172,20 @@ class BlogController extends Controller
         );
     }
 
-    private function validated(Request $request): array
+    private function validated(Request $request, ?Blog $blog = null): array
     {
+        /** @var Region $region */
+        $region = $request->attributes->get('activeRegion');
+
         $data = $request->validate([
             'blog_category_id' => ['nullable', 'exists:blog_categories,id'],
             'title' => ['required', 'string', 'max:255'],
+            'slug' => [
+                'nullable', 'string', 'max:255', 'alpha_dash',
+                Rule::unique('blogs', 'slug')->where('region_id', $region->id)->ignore($blog),
+            ],
+            'route_prefix' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9-]+(\/[a-z0-9-]+)*$/', $this->notReservedPrefix()],
+            'route_suffix' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9-]+(\/[a-z0-9-]+)*$/'],
             'excerpt' => ['nullable', 'string', 'max:500'],
             'content' => ['required', 'string'],
             'featured_image' => ['nullable', 'image', 'max:5120', 'dimensions:width=670,height=300'],

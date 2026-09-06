@@ -10,7 +10,7 @@
         </a>
     </div>
 
-    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
         <table class="w-full text-left text-sm">
             <thead class="border-b border-gray-200 bg-gray-50 text-xs uppercase text-gray-500">
                 <tr>
@@ -25,7 +25,7 @@
                 @forelse ($badges as $badge)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-medium text-gray-900">{{ $badge->name }}</td>
-                        <td class="px-4 py-3"><span class="rounded px-1.5 py-0.5 text-xs font-medium {{ $badge->classes() }}">{{ $badge->name }}</span></td>
+                        <td class="px-4 py-3"><span class="rounded px-1.5 py-0.5 text-xs font-medium {{ $badge->style() ? '' : $badge->classes() }}" @if ($badge->style()) style="{{ $badge->style() }}" @endif>{{ $badge->name }}</span></td>
                         <td class="px-4 py-3 text-gray-500">{{ $badge->offers_count }}</td>
                         <td class="px-4 py-3">
                             @if ($badge->is_active)

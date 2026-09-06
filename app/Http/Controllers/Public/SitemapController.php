@@ -46,11 +46,11 @@ class SitemapController extends Controller
                 }
 
                 foreach (Store::where('region_id', $region->id)->visible()->where('robots_index', true)->get() as $store) {
-                    $urls[] = ['loc' => url("/{$region->code}/store/{$store->slug}"), 'priority' => '0.7'];
+                    $urls[] = ['loc' => $store->urlFor($region), 'priority' => '0.7'];
                 }
 
                 foreach (Blog::where('region_id', $region->id)->where('is_published', true)->where('robots_index', true)->get() as $blog) {
-                    $urls[] = ['loc' => url("/{$region->code}/blog/{$blog->slug}"), 'priority' => '0.5'];
+                    $urls[] = ['loc' => $blog->urlFor($region), 'priority' => '0.5'];
                 }
 
                 foreach (StaticPage::where('region_id', $region->id)->where('is_active', true)->where('robots_index', true)->get() as $page) {

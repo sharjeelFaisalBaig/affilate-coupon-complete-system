@@ -28,7 +28,6 @@ class ResolvePublicRegion
         $request->attributes->set('region', $region);
 
         View::share('region', $region);
-        View::share('allRegions', Region::where('is_active', true)->orderBy('sort_order')->get());
 
         // Header/footer nav (Menu Manager) and footer copy/logo (General
         // Settings) are shared here once per request for every public page,

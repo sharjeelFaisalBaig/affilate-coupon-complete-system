@@ -2,6 +2,10 @@
 
 @section('title', $category->exists ? 'Edit Category' : 'Add Category')
 
+@push('head')
+    @vite(['resources/js/image-dimension-check.js'])
+@endpush
+
 @section('content')
     <div class="max-w-2xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <form method="POST" action="{{ $category->exists ? route('admin.categories.update', $category) : route('admin.categories.store') }}"

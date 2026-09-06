@@ -27,12 +27,24 @@
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     <p class="mt-1 text-xs text-gray-400">URI slug, e.g. "amazon". Live-previewed from the name above while left blank.</p>
                 </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">Slug Prefix</label>
+                    <input type="text" name="route_prefix" value="{{ old('route_prefix', $store->route_prefix) }}" placeholder="{{ \App\Models\Store::DEFAULT_ROUTE_PREFIX }}"
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <p class="mt-1 text-xs text-gray-400">The path segment before the slug — e.g. "promotions" for /promotions/{{ $store->slug ?: 'slug' }}. Leave blank for the default "{{ \App\Models\Store::DEFAULT_ROUTE_PREFIX }}".</p>
+                </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">Suffix</label>
+                    <input type="text" name="route_suffix" value="{{ old('route_suffix', $store->route_suffix) }}" placeholder="e.g. best-deals"
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <p class="mt-1 text-xs text-gray-400">Optional trailing path segment after the slug.</p>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">Category</label>
-                    <select name="category_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <select name="category_id" data-select2-enable data-placeholder="— None —" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         <option value="">— None —</option>
                         @foreach ($categories as $category)
                             <option value="{{ $category->id }}" @selected(old('category_id', $store->category_id) == $category->id)>{{ $category->name }}</option>
@@ -41,7 +53,7 @@
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">Heading Suffix</label>
-                    <select name="store_suffix_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <select name="store_suffix_id" data-select2-enable data-placeholder="— None —" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         <option value="">— None —</option>
                         @foreach ($storeSuffixes as $storeSuffix)
                             <option value="{{ $storeSuffix->id }}" @selected(old('store_suffix_id', $store->store_suffix_id) == $storeSuffix->id)>{{ $storeSuffix->name }}</option>

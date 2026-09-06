@@ -15,10 +15,10 @@
                 <div class="flex items-center gap-1">
                     <span class="text-sm text-gray-400">/{{ $activeRegion->code }}/</span>
                     <input type="text" name="slug" value="{{ old('slug', $settings->slug ?? \App\Models\PageSetting::DEFAULT_SLUGS[$pageKey]) }}"
-                           pattern="[a-z0-9-]*"
+                           placeholder="e.g. coupons/usa-promotions"
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                 </div>
-                <p class="mt-1 text-xs text-gray-400">Lowercase letters, numbers, and hyphens only — leave blank to make this page the region's root ("/"). Only one page per region can be blank at a time.</p>
+                <p class="mt-1 text-xs text-gray-400">Lowercase letters, numbers, hyphens, and "/" for multi-segment paths (e.g. "promos/blogs") — leave blank to make this page the region's root ("/"). Only one page per region can be blank at a time.</p>
             </div>
 
             <div>
@@ -34,6 +34,13 @@
             </div>
 
             @if ($pageKey === 'home')
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">Hero Badge Text</label>
+                    <input type="text" name="hero_badge_text" value="{{ old('hero_badge_text', $settings->hero_badge_text) }}"
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <p class="mt-1 text-xs text-gray-400">Small pill shown above the hero heading, e.g. "Verified daily by our editors". Leave blank to hide it.</p>
+                </div>
+
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                         <label class="mb-1 block text-sm font-medium text-gray-700">Hero Search Placeholder</label>

@@ -21,7 +21,7 @@
             <div>
                 <label class="mb-1 block text-sm font-medium text-gray-700">Content Type</label>
                 <div class="flex gap-6">
-                    @foreach (['coupon' => 'Coupon', 'deal' => 'Deal', 'store' => 'Trending Stores'] as $value => $label)
+                    @foreach (['coupon' => 'Coupon', 'deal' => 'Deal', 'mixed' => 'Mixed Deals/Coupons', 'store' => 'Trending Stores'] as $value => $label)
                         <label class="flex items-center gap-2">
                             <input type="radio" name="content_type" value="{{ $value }}" data-content-type
                                    @checked(old('content_type', $section->content_type ?: 'coupon') === $value) required
@@ -58,6 +58,16 @@
                 ])
             </div>
 
+            <div data-picker="mixed" class="hidden">
+                @include('admin.homepage-sections._picker-field', [
+                    'type' => 'mixed',
+                    'inputName' => 'offer_ids',
+                    'label' => 'Select Coupons & Deals',
+                    'max' => \App\Models\HomepageSection::MAX_OFFERS,
+                    'selected' => $selectedOffers->map(fn ($o) => ['id' => $o->id, 'label' => $o->store->name.' — '.$o->title]),
+                ])
+            </div>
+
             <div data-picker="store" class="hidden">
                 @include('admin.homepage-sections._picker-field', [
                     'type' => 'store',
@@ -83,7 +93,7 @@
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">CTA Target</label>
-                    <select name="cta_target" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <select name="cta_target" data-select2-enable class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         <option value="same_tab" @selected(old('cta_target', $section->cta_target ?? 'same_tab') === 'same_tab')>Same Tab</option>
                         <option value="new_tab" @selected(old('cta_target', $section->cta_target) === 'new_tab')>New Tab</option>
                     </select>
@@ -118,6 +128,13 @@
     @include('admin.homepage-sections._picker-modal', [
         'type' => 'deal',
         'title' => 'Select Deals',
+        'max' => \App\Models\HomepageSection::MAX_OFFERS,
+        'resultsUrl' => $pickerResultsUrl,
+        'showCategory' => false, 'showStore' => true, 'showBadge' => false, 'showSearch' => true,
+    ])
+    @include('admin.homepage-sections._picker-modal', [
+        'type' => 'mixed',
+        'title' => 'Select Coupons & Deals',
         'max' => \App\Models\HomepageSection::MAX_OFFERS,
         'resultsUrl' => $pickerResultsUrl,
         'showCategory' => false, 'showStore' => true, 'showBadge' => false, 'showSearch' => true,

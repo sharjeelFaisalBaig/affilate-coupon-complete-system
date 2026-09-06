@@ -12,12 +12,16 @@ class Store extends Model
 {
     use HasFactory;
 
+    public const DEFAULT_ROUTE_PREFIX = 'store';
+
     protected $fillable = [
         'region_id',
         'category_id',
         'store_suffix_id',
         'name',
         'slug',
+        'route_prefix',
+        'route_suffix',
         'logo_path',
         'about',
         'affiliate_url',
@@ -87,6 +91,61 @@ class Store extends Model
     {
         return $query->where('is_active', true)
             ->where(fn ($q) => $q->whereNull('expiry_date')->orWhere('expiry_date', '>=', now()->startOfDay()));
+    }
+
+    /**
+     * The "{prefix}/{slug}[/{suffix}]" path segment after "/{region}/" — both
+     * prefix and suffix are per-store overrides of the "store"/(none)
+     * defaults, so this is never a fixed literal like the old static
+     * `store/{storeSlug}` route was.
+     */
+    public function path(): string
+    {
+        $prefix = trim($this->route_prefix ?: self::DEFAULT_ROUTE_PREFIX, '/');
+        $path = "{$prefix}/{$this->slug}";
+
+        if ($this->route_suffix) {
+            $path .= '/'.trim($this->route_suffix, '/');
+        }
+
+        return $path;
+    }
+
+    public function urlFor(Region $region): string
+    {
+        return url("/{$region->code}/{$this->path()}");
+    }
+
+    /**
+     * Resolves an incoming "{prefix...}/{slug}[/{suffix}]" path (already
+     * stripped of the {region} prefix) back to the one visible store whose
+     * own path() matches it exactly — used by the catch-all page router
+     * now that a store's prefix/suffix are admin-editable per store rather
+     * than the fixed "store/" literal the route used to match on.
+     */
+    public static function resolveByPath(Region $region, string $path): ?self
+    {
+        $path = trim($path, '/');
+        $segments = explode('/', $path);
+        if (count($segments) < 2) {
+            return null;
+        }
+
+        // No suffix: "{prefix...}/{slug}" — slug is the last segment.
+        $store = self::where('region_id', $region->id)->where('slug', end($segments))->visible()->first();
+        if ($store && $store->path() === $path) {
+            return $store;
+        }
+
+        // With a suffix: "{prefix...}/{slug}/{suffix}" — slug is second-to-last.
+        if (count($segments) >= 3) {
+            $store = self::where('region_id', $region->id)->where('slug', $segments[count($segments) - 2])->visible()->first();
+            if ($store && $store->path() === $path) {
+                return $store;
+            }
+        }
+
+        return null;
     }
 
     public function region(): BelongsTo

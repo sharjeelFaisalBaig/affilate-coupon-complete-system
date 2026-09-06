@@ -2,6 +2,10 @@
 
 @section('title', $region->exists ? 'Edit Region' : 'Add Region')
 
+@push('head')
+    @vite(['resources/js/image-dimension-check.js'])
+@endpush
+
 @section('content')
     <div class="max-w-2xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <form method="POST"

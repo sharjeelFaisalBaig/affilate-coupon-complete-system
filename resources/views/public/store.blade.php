@@ -30,9 +30,9 @@
     </div>
 
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div data-ajax-filter data-base-url="{{ route('public.store', [$region->code, $store->slug]) }}" class="mt-6">
+        <div data-ajax-filter data-base-url="{{ $store->urlFor($region) }}" class="mt-6">
             <form data-ajax-filter-form class="flex flex-wrap items-center justify-center gap-3">
-                <select name="filter" class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                <select name="filter" data-select2-enable class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     <option value="" @selected(!request('filter'))>All Types</option>
                     <option value="coupon" @selected(request('filter') === 'coupon')>Coupon Codes ({{ $couponCount }})</option>
                     <option value="deal" @selected(request('filter') === 'deal')>Deals ({{ $dealCount }})</option>
@@ -49,17 +49,19 @@
         </div>
 
         {{-- Store info card: left = logo/title/link/rating/reviews/about, right = auto-calculated savings stats --}}
-        <div data-reveal class="mt-12 grid grid-cols-1 gap-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm lg:grid-cols-2">
+        <div data-reveal class="mt-12 grid grid-cols-1 gap-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:grid-cols-2">
             <div>
-                <div class="flex flex-col items-center gap-2 sm:flex-row sm:items-start">
-                    @if ($store->logo_path)
-                        <img src="{{ Storage::url($store->logo_path) }}" alt="{{ $store->name }}" width="120" height="60" class="h-[60px] w-[120px] shrink-0 object-contain">
-                    @else
-                        @include('public.partials.placeholder-image', ['class' => 'h-[60px] w-[120px] shrink-0 rounded-lg'])
-                    @endif
+                <div class="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
+                    <span class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-100 bg-white shadow-sm ring-1 ring-gray-100">
+                        @if ($store->logo_path)
+                            <img src="{{ Storage::url($store->logo_path) }}" alt="{{ $store->name }}" width="120" height="60" class="h-full w-full object-contain p-2">
+                        @else
+                            @include('public.partials.placeholder-image', ['class' => 'h-full w-full', 'iconClass' => 'h-6 w-6'])
+                        @endif
+                    </span>
                     <div class="text-center sm:text-left">
-                        <p class="font-bold text-gray-900">{{ $store->name }}</p>
-                        <div class="mt-1 flex items-center justify-center gap-1 text-amber-500 sm:justify-start">
+                        <p class="text-lg font-bold text-gray-900">{{ $store->name }}</p>
+                        <div class="mt-1 flex items-center justify-center gap-1 text-amber-400 sm:justify-start">
                             @for ($i = 1; $i <= 5; $i++)
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="{{ $i <= round($store->star_rating) ? 'currentColor' : '#e5e7eb' }}" class="h-4 w-4"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.958a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.368 2.447a1 1 0 00-.363 1.118l1.287 3.957c.3.922-.755 1.688-1.538 1.118l-3.367-2.447a1 1 0 00-1.176 0l-3.367 2.447c-.783.57-1.838-.196-1.538-1.118l1.287-3.957a1 1 0 00-.363-1.118L2.063 9.385c-.783-.57-.38-1.81.588-1.81h4.163a1 1 0 00.95-.69l1.285-3.958z"/></svg>
                             @endfor
@@ -75,10 +77,19 @@
                 @endif
             </div>
             <div>
-                <div class="grid grid-cols-2 gap-3 rounded-lg bg-gray-50 p-4 text-sm">
-                    <div><p class="text-xs text-gray-400">Verified Discount Codes</p><p class="font-bold text-gray-900">{{ $savingsStats['verified_codes'] }}</p></div>
-                    <div><p class="text-xs text-gray-400">Total Coupons</p><p class="font-bold text-gray-900">{{ $savingsStats['total_coupons'] }}</p></div>
-                    <div class="col-span-2"><p class="text-xs text-gray-400">Last Coupon Added</p><p class="font-bold text-gray-900">{{ $savingsStats['last_coupon_added'] }}</p></div>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div class="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4">
+                        <p class="text-xs font-medium text-emerald-700">Verified Discount Codes</p>
+                        <p class="mt-1 text-2xl font-bold text-emerald-900">{{ $savingsStats['verified_codes'] }}</p>
+                    </div>
+                    <div class="rounded-xl bg-deal-50 p-4">
+                        <p class="text-xs font-medium text-deal-700">Total Coupons</p>
+                        <p class="mt-1 text-2xl font-bold text-deal-900">{{ $savingsStats['total_coupons'] }}</p>
+                    </div>
+                    <div class="col-span-2 rounded-xl bg-gray-50 p-4">
+                        <p class="text-xs font-medium text-gray-500">Last Coupon Added</p>
+                        <p class="mt-1 font-bold text-gray-900">{{ $savingsStats['last_coupon_added'] }}</p>
+                    </div>
                 </div>
             </div>
         </div>

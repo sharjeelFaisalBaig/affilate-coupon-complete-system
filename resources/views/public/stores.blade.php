@@ -8,7 +8,7 @@
             <form data-ajax-filter-form class="flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                 <div>
                     <label class="mb-1 block text-xs font-medium text-gray-500">Category</label>
-                    <select name="category_id" class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <select name="category_id" data-select2-enable data-placeholder="All Categories" class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         <option value="">All Categories</option>
                         @foreach ($categories as $category)
                             <option value="{{ $category->id }}" @selected($selectedCategoryId == $category->id)>{{ $category->name }}</option>
@@ -51,7 +51,7 @@
                             <h3 class="text-2xl font-bold text-gray-300">{{ $letter }}</h3>
                             <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1">
                                 @foreach ($directory[$letter] as $store)
-                                    <a href="{{ route('public.store', [$region->code, $store->slug]) }}" class="text-sm text-gray-600 hover:text-emerald-600">{{ $store->name }}</a>
+                                    <a href="{{ $store->urlFor($region) }}" class="text-sm text-gray-600 hover:text-emerald-600">{{ $store->name }}</a>
                                 @endforeach
                             </div>
                         </div>

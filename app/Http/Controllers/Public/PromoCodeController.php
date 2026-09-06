@@ -24,7 +24,7 @@ class PromoCodeController extends Controller
 
         return response()->json($offers->map(fn ($offer) => [
             'label' => "{$offer->title} — {$offer->store->name}",
-            'url' => route('public.store', [$region->code, $offer->store->slug]),
+            'url' => $offer->store->urlFor($region),
         ]));
     }
 

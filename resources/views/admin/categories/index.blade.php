@@ -3,7 +3,7 @@
 @section('title', 'Categories')
 
 @section('content')
-    <div class="mb-4 flex items-center justify-between">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p class="text-sm text-gray-500">Drag rows to reorder how categories appear on the storefront.</p>
         <a href="{{ route('admin.categories.create') }}"
            class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md active:translate-y-0">
@@ -11,34 +11,35 @@
         </a>
     </div>
 
-    <form method="GET" class="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-        <div>
+    <form method="GET" class="mb-4 flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:flex-wrap sm:items-end">
+        <div class="w-full min-w-0 sm:w-auto">
             <label class="mb-1 block text-xs font-medium text-gray-500">Search</label>
-            <input type="text" name="q" value="{{ request('q') }}" placeholder="Name or slug"
-                   class="rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+            <input type="text" name="q" value="{{ request('q') }}" placeholder="Name or slug" autocomplete="off"
+                   data-autosuggest-endpoint="{{ route('admin.categories.suggest') }}"
+                   class="w-full min-w-0 rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:w-auto">
         </div>
-        <div>
+        <div class="w-full min-w-0 sm:w-auto">
             <label class="mb-1 block text-xs font-medium text-gray-500">Status</label>
-            <select name="status" class="rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+            <select name="status" data-select2-enable class="w-full min-w-0 rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:w-auto">
                 <option value="">All</option>
                 <option value="active" @selected(request('status') === 'active')>Published</option>
                 <option value="inactive" @selected(request('status') === 'inactive')>Draft</option>
             </select>
         </div>
         <div class="flex flex-col justify-end">
-            <span class="mb-1 block text-xs font-medium text-transparent select-none" aria-hidden="true">Filter</span>
-            <button type="submit" class="flex h-[2.625rem] items-center rounded-md bg-gray-900 px-4 text-sm font-medium text-white hover:bg-gray-800">Filter</button>
+            <span class="mb-1 hidden text-xs font-medium text-transparent select-none sm:block" aria-hidden="true">Filter</span>
+            <button type="submit" class="flex h-[2.625rem] w-full items-center justify-center rounded-md bg-emerald-500 px-4 text-sm font-medium text-white hover:bg-emerald-600 sm:w-auto">Filter</button>
         </div>
         @if (request()->hasAny(['q', 'status']))
             <div class="flex flex-col justify-end">
-                <span class="mb-1 block text-xs font-medium text-transparent select-none" aria-hidden="true">Clear</span>
+                <span class="mb-1 hidden text-xs font-medium text-transparent select-none sm:block" aria-hidden="true">Clear</span>
                 <a href="{{ route('admin.categories.index') }}"
-                   class="flex h-[2.625rem] items-center text-sm text-gray-500 hover:text-gray-700">Clear</a>
+                   class="flex h-[2.625rem] items-center justify-center text-sm text-gray-500 hover:text-gray-700">Clear</a>
             </div>
         @endif
     </form>
 
-    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
         <table class="w-full text-left text-sm">
             <thead class="border-b border-gray-200 bg-gray-50 text-xs uppercase text-gray-500">
                 <tr>

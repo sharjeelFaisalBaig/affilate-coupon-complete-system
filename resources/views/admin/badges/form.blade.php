@@ -2,6 +2,10 @@
 
 @section('title', $badge->exists ? 'Edit Badge' : 'Add Badge')
 
+@push('head')
+    @vite(['resources/js/badge-form.js'])
+@endpush
+
 @section('content')
     <div class="max-w-xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <form method="POST"
@@ -15,6 +19,20 @@
                 <input type="text" name="name" value="{{ old('name', $badge->name) }}" required placeholder="e.g. Verified" maxlength="255"
                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                 <p class="mt-1 text-xs text-gray-400">Optimal length: ~15 characters so it fits on one line as a pill.</p>
+            </div>
+
+            <div>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="use_custom_color" value="1" data-toggle-color
+                           @checked(old('use_custom_color', (bool) $badge->color))
+                           class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500">
+                    <span class="text-sm text-gray-700">Use a custom color</span>
+                </label>
+                <div class="mt-2 flex items-center gap-2" @if (! old('use_custom_color', (bool) $badge->color)) style="display:none" @endif data-color-field>
+                    <input type="color" name="color" value="{{ old('color', $badge->color ?: '#10b981') }}"
+                           class="h-9 w-16 rounded-md border-gray-300 p-1 shadow-sm">
+                    <span class="text-xs text-gray-400">Overrides the default pill color for this feature.</span>
+                </div>
             </div>
 
             <label class="flex items-center gap-2">

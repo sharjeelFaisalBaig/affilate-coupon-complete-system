@@ -43,6 +43,7 @@ class HomeController extends Controller
             'subheading' => $pageSetting?->subheading ?: 'Save today with verified coupon codes, promo codes and deals for top stores in '.$region->name.'.',
             'heroSearchPlaceholder' => $pageSetting?->hero_search_placeholder ?: 'Search for a store or brand...',
             'heroSearchButtonText' => $pageSetting?->hero_search_button_text ?: 'Search',
+            'heroBadgeText' => $pageSetting?->hero_badge_text,
             'seoTitle' => $pageSetting?->meta_title ?: ($region->name.' Coupons, Promo Codes & Deals — '.now()->format('F Y')),
             'seoDescription' => $pageSetting?->meta_description ?: ('Save today with verified coupon codes, promo codes and deals for top stores in '.$region->name.'.'),
             'ogTitle' => $pageSetting?->og_title,

@@ -18,6 +18,8 @@
         "@laravel/multiplex": "^0.4.1"
     },
     "dependencies": {
-        "quill": "^2.0.3"
+        "jquery": "^3.7.1",
+        "quill": "^2.0.3",
+        "select2": "^4.0.13"
     }
 }

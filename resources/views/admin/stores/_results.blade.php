@@ -1,4 +1,4 @@
-<div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+<div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
     <table class="w-full text-left text-sm">
         <thead class="border-b border-gray-200 bg-gray-50 text-xs uppercase text-gray-500">
             <tr>
@@ -13,7 +13,7 @@
                     <td class="px-4 py-3 font-medium text-gray-900">{{ $store->name }}</td>
                     <td class="px-4 py-3 text-gray-500">{{ $store->category?->name ?? '—' }}</td>
                     <td class="px-4 py-3 text-right">
-                        <a href="{{ route('public.store', [$activeRegion->code, $store->slug]) }}" target="_blank" rel="noopener" class="font-medium text-gray-600 hover:text-gray-800" data-no-ajax>View</a>
+                        <a href="{{ $store->urlFor($activeRegion) }}" target="_blank" rel="noopener" class="font-medium text-gray-600 hover:text-gray-800" data-no-ajax>View</a>
                         <a href="{{ route('admin.stores.edit', $store) }}" class="ml-3 font-medium text-emerald-600 hover:text-emerald-700" data-no-ajax>Edit</a>
                         <form action="{{ route('admin.stores.destroy', $store) }}" method="POST" class="ml-3 inline"
                               onsubmit="return confirm('Delete this store? This is only possible if it has no active coupons or deals.');">

@@ -4,19 +4,18 @@
 
 @section('content')
     <div class="mb-4 flex items-center justify-between">
-        <p class="text-sm text-gray-500">Credentials for affiliate networks used to build tracking links for this region.</p>
+        <p class="text-sm text-gray-500">Tracking scripts injected into this region's pages at a chosen placement.</p>
         <a href="{{ route('admin.affiliate-networks.create') }}" class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md active:translate-y-0">
             + Add Network
         </a>
     </div>
 
-    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
         <table class="w-full text-left text-sm">
             <thead class="border-b border-gray-200 bg-gray-50 text-xs uppercase text-gray-500">
                 <tr>
                     <th class="px-4 py-3">Network</th>
-                    <th class="px-4 py-3">Tracking ID</th>
-                    <th class="px-4 py-3">Sync Status</th>
+                    <th class="px-4 py-3">Placement</th>
                     <th class="px-4 py-3">Status</th>
                     <th class="px-4 py-3 text-right">Actions</th>
                 </tr>
@@ -25,8 +24,7 @@
                 @forelse ($networks as $network)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-medium text-gray-900">{{ $network->network_name }}</td>
-                        <td class="px-4 py-3 text-gray-500">{{ $network->tracking_id ?? '—' }}</td>
-                        <td class="px-4 py-3 text-gray-500">{{ ucfirst($network->sync_status) }}</td>
+                        <td class="px-4 py-3 text-gray-500">{{ str_replace('_', ' ', $network->placement) }}</td>
                         <td class="px-4 py-3">
                             @if ($network->is_active)
                                 <span class="rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">Connected</span>

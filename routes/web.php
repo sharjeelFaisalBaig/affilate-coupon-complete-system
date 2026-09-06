@@ -8,7 +8,6 @@ use App\Http\Controllers\Public\PageRouterController;
 use App\Http\Controllers\Public\PromoCodeController;
 use App\Http\Controllers\Public\SitemapController;
 use App\Http\Controllers\Public\StaticPageController;
-use App\Http\Controllers\Public\StoreController;
 use App\Http\Controllers\Public\StoreDirectoryController;
 use App\Http\Controllers\Public\SystemController;
 use App\Models\Region;
@@ -35,11 +34,7 @@ Route::get('system/optimize-clear', [SystemController::class, 'optimizeClear'])-
 require __DIR__.'/admin.php';
 
 Route::prefix('{region}')->middleware('public.region')->where(['region' => '[a-z]{2,4}'])->group(function () {
-    Route::get('store/{storeSlug}', [StoreController::class, 'show'])->name('public.store');
-
     Route::get('category/{categorySlug}', [CategoryController::class, 'show'])->name('public.category');
-
-    Route::get('blog/{blogSlug}', [BlogController::class, 'show'])->name('public.blog');
 
     Route::get('suggest/stores', [StoreDirectoryController::class, 'suggest'])->name('public.suggest.stores');
     Route::get('suggest/coupons', [PromoCodeController::class, 'suggest'])->name('public.suggest.coupons');
@@ -50,11 +45,16 @@ Route::prefix('{region}')->middleware('public.region')->where(['region' => '[a-z
 
     Route::get('go/{offer}', OfferRedirectController::class)->name('public.offer.redirect');
 
-    // Catch-all for the 4 fixed pages (home/stores/coupons/blogs), whose URL
-    // segment is admin-renameable per region (PageSetting.slug) — must stay
-    // LAST in this group so every more specific route above always wins.
-    // Build outbound links to these pages via PageSetting::urlFor(), not
-    // route('public.home'|'public.stores'|'public.coupons'|'public.blogs'),
-    // since those route names no longer exist.
-    Route::get('{slug?}', PageRouterController::class)->where('slug', '[a-z0-9-]*')->name('public.page-router');
+    // Catch-all for: the 4 fixed pages (home/stores/coupons/blogs, admin-
+    // renameable per region via PageSetting.slug), every store detail page
+    // (admin-renameable PER STORE via Store.route_prefix/route_suffix,
+    // default "store/{slug}"), and every blog detail page (same idea via
+    // Blog.route_prefix/route_suffix, default "blog/{slug}"). None of these
+    // are fixed literal routes anymore — see PageRouterController for the
+    // resolution order — so this must stay LAST in the group, and the slug
+    // constraint allows "/" for multi-segment prefixes/suffixes. Build
+    // outbound links via PageSetting::urlFor() / $store->urlFor() /
+    // $blog->urlFor(), never route('public.home'|'stores'|'coupons'|'blogs'|
+    // 'store'|'blog', ...) — none of those route names exist anymore.
+    Route::get('{slug?}', PageRouterController::class)->where('slug', '[a-z0-9\-\/]*')->name('public.page-router');
 });

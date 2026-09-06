@@ -47,11 +47,14 @@ class PageSettingController extends Controller
         $region = $request->attributes->get('activeRegion');
 
         $data = $request->validate([
-            'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9-]*$/'],
+            // Slashes are allowed now (e.g. "coupons/usa-promotions") — no
+            // leading/trailing slash, and no doubled "//" segments.
+            'slug' => ['nullable', 'string', 'max:255', 'regex:/^([a-z0-9-]+(\/[a-z0-9-]+)*)?$/'],
             'heading' => ['nullable', 'string', 'max:255'],
             'subheading' => ['nullable', 'string', 'max:1000'],
             'hero_search_placeholder' => ['nullable', 'string', 'max:255'],
             'hero_search_button_text' => ['nullable', 'string', 'max:50'],
+            'hero_badge_text' => ['nullable', 'string', 'max:100'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string', 'max:255'],
             'og_title' => ['nullable', 'string', 'max:255'],

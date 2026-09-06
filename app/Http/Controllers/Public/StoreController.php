@@ -10,11 +10,15 @@ use Illuminate\View\View;
 
 class StoreController extends Controller
 {
-    public function show(Request $request, Region $region, string $storeSlug): View
+    /**
+     * $store is already resolved by PageRouterController (its path — a
+     * per-store admin-editable {prefix}/{slug}[/{suffix}] — is no longer a
+     * fixed "store/{slug}" route, so this can't rely on route-model-binding
+     * from a URL segment anymore).
+     */
+    public function show(Request $request, Region $region, Store $store): View
     {
-        $store = Store::where('region_id', $region->id)->where('slug', $storeSlug)->visible()
-            ->with(['category', 'storeSuffix'])
-            ->firstOrFail();
+        $store->load(['category', 'storeSuffix']);
 
         $query = $store->offers()->with(['store', 'badges'])->where('is_active', true);
 

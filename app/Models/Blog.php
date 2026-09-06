@@ -11,12 +11,16 @@ class Blog extends Model
 {
     use HasFactory;
 
+    public const DEFAULT_ROUTE_PREFIX = 'blog';
+
     protected $fillable = [
         'region_id',
         'blog_category_id',
         'sort_order',
         'title',
         'slug',
+        'route_prefix',
+        'route_suffix',
         'excerpt',
         'content',
         'featured_image',
@@ -54,6 +58,55 @@ class Blog extends Model
             'enable_amp' => 'boolean',
             'auto_link_related_blogs' => 'boolean',
         ];
+    }
+
+    /**
+     * The "{prefix}/{slug}[/{suffix}]" path segment after "/{region}/" — see
+     * Store::path() for the identical rationale (per-entity override of the
+     * "blog"/(none) defaults).
+     */
+    public function path(): string
+    {
+        $prefix = trim($this->route_prefix ?: self::DEFAULT_ROUTE_PREFIX, '/');
+        $path = "{$prefix}/{$this->slug}";
+
+        if ($this->route_suffix) {
+            $path .= '/'.trim($this->route_suffix, '/');
+        }
+
+        return $path;
+    }
+
+    public function urlFor(Region $region): string
+    {
+        return url("/{$region->code}/{$this->path()}");
+    }
+
+    /**
+     * See Store::resolveByPath() — identical strategy, scoped to published
+     * blogs instead of Store::scopeVisible().
+     */
+    public static function resolveByPath(Region $region, string $path): ?self
+    {
+        $path = trim($path, '/');
+        $segments = explode('/', $path);
+        if (count($segments) < 2) {
+            return null;
+        }
+
+        $blog = self::where('region_id', $region->id)->where('slug', end($segments))->where('is_published', true)->first();
+        if ($blog && $blog->path() === $path) {
+            return $blog;
+        }
+
+        if (count($segments) >= 3) {
+            $blog = self::where('region_id', $region->id)->where('slug', $segments[count($segments) - 2])->where('is_published', true)->first();
+            if ($blog && $blog->path() === $path) {
+                return $blog;
+            }
+        }
+
+        return null;
     }
 
     public function region(): BelongsTo

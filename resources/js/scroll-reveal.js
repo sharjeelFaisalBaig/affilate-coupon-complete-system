@@ -2,8 +2,19 @@
  * Fades/slides [data-reveal] elements in as they enter the viewport. Falls
  * back to immediately marking everything visible if IntersectionObserver
  * isn't available, so content is never permanently hidden.
+ *
+ * A [data-reveal-group] ancestor (e.g. a card grid) staggers its direct
+ * [data-reveal] children — each gets an increasing transition-delay so a
+ * whole row/grid cascades in rather than popping together, capped so a long
+ * grid doesn't leave late cards waiting several seconds.
  */
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-reveal-group]').forEach((group) => {
+        Array.from(group.querySelectorAll(':scope > [data-reveal]')).forEach((el, index) => {
+            el.style.transitionDelay = `${Math.min(index * 70, 420)}ms`;
+        });
+    });
+
     const targets = document.querySelectorAll('[data-reveal]');
     if (!targets.length) return;
 

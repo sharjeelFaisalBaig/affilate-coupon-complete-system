@@ -10,7 +10,7 @@
         </a>
     </div>
 
-    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
         <table class="w-full text-left text-sm">
             <thead class="border-b border-gray-200 bg-gray-50 text-xs uppercase text-gray-500">
                 <tr>

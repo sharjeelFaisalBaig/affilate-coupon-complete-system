@@ -3,7 +3,7 @@
     $stores/$selectedStore are only passed by the global create/edit forms.
 --}}
 @php
-    // "Verified" starts pre-checked on the Add Promotion form only — the
+    // "Verified" starts pre-checked on the Add Coupon form only — the
     // edit form always reflects whatever is actually stored.
     $selectedBadgeIds = old('badge_ids', $offer->exists
         ? $offer->badges->pluck('id')->all()
@@ -13,7 +13,7 @@
 @if (isset($stores))
     <div>
         <label class="mb-1 block text-sm font-medium text-gray-700">Store / Brand</label>
-        <select name="store_id" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+        <select name="store_id" required data-select2-enable class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
             <option value="">— Select a store —</option>
             @foreach ($stores as $storeOption)
                 <option value="{{ $storeOption->id }}" @selected(old('store_id', $selectedStore?->id) == $storeOption->id)>{{ $storeOption->name }}</option>
@@ -24,7 +24,7 @@
 
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     <div>
-        <label class="mb-1 block text-sm font-medium text-gray-700">Promotion Type</label>
+        <label class="mb-1 block text-sm font-medium text-gray-700">Coupon Type</label>
         <select name="offer_type" data-offer-type required
                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
             <option value="coupon" @selected(old('offer_type', $offer->offer_type) === 'coupon')>Coupon Code</option>
@@ -70,8 +70,8 @@
 @endif
 
 <div>
-    <label class="mb-1 block text-sm font-medium text-gray-700">Coupon Features (max 2)</label>
-    <div data-max-badges="2" class="flex flex-wrap gap-4">
+    <label class="mb-1 block text-sm font-medium text-gray-700">Coupon Features (max 3)</label>
+    <div data-max-badges="3" class="flex flex-wrap gap-4">
         @foreach ($badges as $badge)
             <label class="flex items-center gap-2">
                 <input type="checkbox" name="badge_ids[]" value="{{ $badge->id }}" data-badge-checkbox
@@ -85,7 +85,7 @@
         <input type="checkbox" name="is_featured" value="1"
                @checked(old('is_featured', $offer->id ? $offer->is_featured : false))
                class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500">
-        <span class="text-sm text-gray-700">Featured Promotion</span>
+        <span class="text-sm text-gray-700">Featured Coupon</span>
     </label>
 </div>
 
