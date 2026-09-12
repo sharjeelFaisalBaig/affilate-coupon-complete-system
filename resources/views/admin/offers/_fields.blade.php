@@ -45,6 +45,7 @@
            placeholder="e.g. 15% Off, $10 Off Storewide, Free Shipping"
            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
     <p class="mt-1 text-xs text-gray-400">The exact text shown on the card — type the discount, currency symbol, or offer text yourself. Keep to ~60 characters so it doesn't wrap awkwardly.</p>
+    @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
 </div>
 
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">

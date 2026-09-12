@@ -32,13 +32,15 @@
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div data-ajax-filter data-base-url="{{ $store->urlFor($region) }}" class="mt-6">
             <form data-ajax-filter-form class="flex flex-wrap items-center justify-center gap-3">
-                <select name="filter" data-select2-enable class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    <option value="" @selected(!request('filter'))>All Types</option>
-                    <option value="coupon" @selected(request('filter') === 'coupon')>Coupon Codes ({{ $couponCount }})</option>
-                    <option value="deal" @selected(request('filter') === 'deal')>Deals ({{ $dealCount }})</option>
-                </select>
+                <div class="w-full sm:w-56">
+                    <select name="filter" data-select2-enable data-placeholder="All Offers" class="w-full rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        <option value="" @selected(!request('filter'))>All Offers</option>
+                        <option value="coupon" @selected(request('filter') === 'coupon')>Coupon Codes ({{ $couponCount }})</option>
+                        <option value="deal" @selected(request('filter') === 'deal')>Deals ({{ $dealCount }})</option>
+                    </select>
+                </div>
                 <input type="search" name="q" value="{{ request('q') }}" placeholder="Search this store's codes..."
-                       class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                       class="w-full rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:w-64">
                 @include('partials.ajax-search-button')
             </form>
 

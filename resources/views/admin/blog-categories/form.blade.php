@@ -14,6 +14,7 @@
                 <label class="mb-1 block text-sm font-medium text-gray-700">Name</label>
                 <input type="text" name="name" value="{{ old('name', $blogCategory->name) }}" required
                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
             <label class="flex items-center gap-2">

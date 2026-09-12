@@ -12,7 +12,7 @@
         : 'bg-gradient-to-r from-deal-500 to-deal-700 hover:shadow-deal-500/30';
 @endphp
 <div id="offer-modal-{{ $offer->id }}" data-modal class="hidden fixed inset-0 z-40 flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+    <div class="absolute inset-0 bg-gray-900/35 backdrop-blur-sm"></div>
     <div class="animate-pop relative w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl">
         <div class="h-1.5 bg-gradient-to-r {{ $accent }}"></div>
         <div class="p-6">
@@ -22,7 +22,7 @@
             </button>
 
             <div class="flex items-center gap-3">
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-100 bg-white shadow-sm ring-1 ring-gray-100">
+                <span class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-100 bg-white shadow-sm ring-1 ring-gray-100 sm:h-11 sm:w-11">
                     @if ($store->logo_path)
                         <img src="{{ Storage::url($store->logo_path) }}" alt="{{ $store->name }}" width="44" height="44" class="h-full w-full object-contain p-1">
                     @else

@@ -8,7 +8,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/drag-sort.js', 'resources/js/offer-form.js', 'resources/js/script-injection-form.js', 'resources/js/faq-builder.js', 'resources/js/homepage-section-form.js', 'resources/js/homepage-section-picker.js', 'resources/js/ajax-filters.js', 'resources/js/autosuggest.js', 'resources/js/table-row-filter.js', 'resources/js/select2-init.js'])
     @stack('head')
 </head>
-<body class="text-gray-900 antialiased">
+<body data-admin-shell class="text-gray-900 antialiased">
     <div class="flex min-h-screen">
         <!-- Sidebar -->
         <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 hidden w-64 shrink-0 flex-col bg-slate-900 lg:static lg:z-auto lg:flex">

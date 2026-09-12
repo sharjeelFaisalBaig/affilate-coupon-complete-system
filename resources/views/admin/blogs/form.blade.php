@@ -19,12 +19,14 @@
                     <label class="mb-1 block text-sm font-medium text-gray-700">Title</label>
                     <input type="text" name="title" value="{{ old('title', $blog->title) }}" required data-slug-source
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">Blog Slug</label>
                     <input type="text" name="slug" value="{{ old('slug', $blog->slug) }}" placeholder="auto-generated from title if left blank" data-slug-preview
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     <p class="mt-1 text-xs text-gray-400">URL slug, e.g. "my-first-post". Live-previewed from the title above while left blank.</p>
+                    @error('slug') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
             </div>
 
@@ -74,9 +76,10 @@
                     <img src="{{ Storage::url($blog->featured_image) }}" alt="" width="120" height="68" class="mb-2 h-[68px] w-[120px] rounded border border-gray-200 object-cover">
                 @endif
                 <input type="file" name="featured_image" accept="image/*" data-required-width="670" data-required-height="300"
-                       class="block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">
+                       class="block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">
                 <p class="mt-1 text-xs text-gray-400">* Required dimensions: exactly 670x300px.</p>
                 <p data-dimension-check-result class="mt-1 text-xs"></p>
+                @error('featured_image') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">

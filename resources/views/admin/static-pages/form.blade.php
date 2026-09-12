@@ -15,12 +15,14 @@
                     <label class="mb-1 block text-sm font-medium text-gray-700">Title</label>
                     <input type="text" name="title" value="{{ old('title', $page->title) }}" required
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">Slug</label>
                     <input type="text" name="slug" value="{{ old('slug', $page->slug) }}" placeholder="auto-generated from title if left blank"
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     <p class="mt-1 text-xs text-gray-400">URI path, e.g. "terms-of-use" for /terms-of-use.</p>
+                    @error('slug') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
             </div>
 

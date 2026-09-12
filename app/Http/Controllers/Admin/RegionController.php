@@ -170,12 +170,12 @@ class RegionController extends Controller
                 Rule::unique('regions', 'code')->ignore($region),
             ],
             'name' => ['required', 'string', 'max:255'],
-            'favicon' => ['nullable', 'image', 'max:512'],
+            'favicon' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:512'],
             'head_start_script' => ['nullable', 'string'],
             'head_end_script' => ['nullable', 'string'],
             'body_start_script' => ['nullable', 'string'],
             'body_end_script' => ['nullable', 'string'],
-            'canonical_base_url' => ['nullable', 'url', 'max:255'],
+            'canonical_base_url' => ['nullable', 'url:https,http', 'max:2048'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
 

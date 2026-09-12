@@ -18,7 +18,7 @@
                     <img src="{{ Storage::url($settings->logo_path) }}" alt="" width="120" height="32" class="mb-2 h-8 w-auto object-contain">
                 @endif
                 <input type="file" name="logo" accept="image/*"
-                       class="block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">
+                       class="block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">
                 <p class="mt-1 text-xs text-gray-400">* Optimal size: 160x40px, transparent PNG/SVG.</p>
             </div>
 

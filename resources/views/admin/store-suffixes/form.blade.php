@@ -15,6 +15,7 @@
                 <input type="text" name="name" value="{{ old('name', $storeSuffix->name) }}" required placeholder="e.g. Promo Codes, Coupons &amp; Deals" maxlength="255"
                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                 <p class="mt-1 text-xs text-gray-400">Appended after the store name in the store page heading, e.g. "Amazon [this text] September 2026".</p>
+                @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
             <label class="flex items-center gap-2">

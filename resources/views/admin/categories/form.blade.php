@@ -19,12 +19,14 @@
                     <input type="text" name="name" value="{{ old('name', $category->name) }}" required maxlength="255"
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     <p class="mt-1 text-xs text-gray-400">Optimal length: ~30 characters.</p>
+                    @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">Category Slug</label>
                     <input type="text" name="slug" value="{{ old('slug', $category->slug) }}" placeholder="auto-generated from name if left blank"
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     <p class="mt-1 text-xs text-gray-400">URI slug, e.g. "electronics".</p>
+                    @error('slug') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
             </div>
 
@@ -34,8 +36,9 @@
                     <img src="{{ Storage::url($category->icon_path) }}" alt="" width="40" height="40" class="mb-2 h-10 w-10 rounded border border-gray-200 object-contain">
                 @endif
                 <input type="file" name="icon_image" accept="image/*"
-                       class="block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">
+                       class="block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">
                 <p class="mt-1 text-xs text-gray-400">* Optimal size: 64x64px.</p>
+                @error('icon_image') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 @if ($category->icon && ! $category->icon_path)
                     <p class="mt-1 text-xs text-gray-400">Currently using legacy icon value: "{{ $category->icon }}"</p>
                 @endif

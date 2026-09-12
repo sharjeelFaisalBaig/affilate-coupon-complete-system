@@ -41,19 +41,34 @@ function initToggles() {
 }
 
 // [data-modal-open="#modal-id"] / [data-modal-close] open and close a modal overlay.
+// Locks body scroll while a modal is open — without it, iOS Safari lets touch
+// scrolls bleed through to the page behind the fixed overlay, which reads as
+// the modal itself being scrollable/full-height on mobile.
+function openModal(modal) {
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+}
+
+function closeModal(modal) {
+    if (!modal) return;
+    modal.classList.add('hidden');
+    if (!document.querySelector('[data-modal]:not(.hidden)')) {
+        document.body.classList.remove('overflow-hidden');
+    }
+}
+
 function initModals() {
     document.addEventListener('click', (event) => {
         const opener = event.target.closest('[data-modal-open]');
         if (opener) {
-            const modal = document.querySelector(opener.getAttribute('data-modal-open'));
-            if (modal) modal.classList.remove('hidden');
+            openModal(document.querySelector(opener.getAttribute('data-modal-open')));
             return;
         }
 
         const closer = event.target.closest('[data-modal-close]');
         if (closer) {
-            const modal = closer.closest('[data-modal]');
-            if (modal) modal.classList.add('hidden');
+            closeModal(closer.closest('[data-modal]'));
         }
     });
 }
@@ -95,8 +110,7 @@ function initRevealFromQueryString() {
     const offerId = new URLSearchParams(window.location.search).get('revealOffer');
     if (!offerId) return;
 
-    const modal = document.querySelector(`#offer-modal-${offerId}`);
-    if (modal) modal.classList.remove('hidden');
+    openModal(document.querySelector(`#offer-modal-${offerId}`));
 }
 
 // [data-copy="CODE_TEXT"] copies text to clipboard and flips its label briefly.
@@ -163,6 +177,51 @@ function initHeaderScrollShadow() {
     sync();
 }
 
+// On the admin shell, warns before leaving a create/edit page with unsaved
+// input — a native confirm on tab close/refresh/URL-bar navigation
+// (beforeunload), and a JS confirm() on in-app link clicks (sidebar/topbar
+// links aren't real navigations the browser can intercept). Scoped to
+// <main> so the topbar's region-switcher and logout forms (which have no
+// editable fields, live outside <main>, and submit via requestSubmit) never
+// trip it. Only POST/PUT forms are tracked — every GET form in the admin is
+// a search/filter, and changing a filter isn't "unsaved work".
+function initUnsavedChangesGuard() {
+    const shell = document.querySelector('[data-admin-shell]');
+    const main = shell && shell.querySelector('main');
+    if (!main) return;
+
+    let dirty = false;
+    let submitting = false;
+
+    const isTracked = (form) => form && main.contains(form) && form.method.toLowerCase() !== 'get';
+
+    ['input', 'change'].forEach((eventName) => {
+        main.addEventListener(eventName, (event) => {
+            if (isTracked(event.target.closest('form'))) dirty = true;
+        });
+    });
+
+    main.addEventListener('submit', (event) => {
+        if (isTracked(event.target)) submitting = true;
+    });
+
+    window.addEventListener('beforeunload', (event) => {
+        if (!dirty || submitting) return;
+        event.preventDefault();
+        event.returnValue = '';
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!dirty || submitting) return;
+        const link = event.target.closest('a[href]');
+        if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+        if (!window.confirm('You have unsaved changes. Are you sure you want to leave this page?')) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initToggles();
     initModals();
@@ -171,4 +230,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initCopyButtons();
     initTabs();
     initHeaderScrollShadow();
+    initUnsavedChangesGuard();
 });

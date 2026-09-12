@@ -24,11 +24,13 @@
                     <input type="text" name="code" value="{{ old('code', $region->code) }}" required maxlength="4" placeholder="e.g. us"
                            class="block w-full rounded-md border-gray-300 lowercase shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     <p class="mt-1 text-xs text-gray-400">URL prefix, e.g. /us, /au. 2-4 letters.</p>
+                    @error('code') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">Region Title</label>
                     <input type="text" name="name" value="{{ old('name', $region->name) }}" required placeholder="e.g. USA"
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
             </div>
 
@@ -38,8 +40,9 @@
                     <img src="{{ Storage::url($region->favicon_path) }}" alt="" width="32" height="32" class="mb-2 h-8 w-8 rounded border border-gray-200 object-contain">
                 @endif
                 <input type="file" name="favicon" accept="image/*,.ico"
-                       class="block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">
+                       class="block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">
                 <p class="mt-1 text-xs text-gray-400">* Optimal size: 32x32px, .ico or .png.</p>
+                @error('favicon') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
             @if ($region->exists)
@@ -72,6 +75,7 @@
                 <input type="url" name="canonical_base_url" value="{{ old('canonical_base_url', $region->canonical_base_url) }}" placeholder="https://www.example.com"
                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                 <p class="mt-1 text-xs text-gray-400">Used to build every page's canonical URL (this + the page's path). Leave blank to use the resolved request host.</p>
+                @error('canonical_base_url') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
             @if ($region->exists)

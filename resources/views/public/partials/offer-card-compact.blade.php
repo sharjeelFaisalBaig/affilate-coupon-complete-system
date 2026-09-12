@@ -17,7 +17,7 @@
     <div class="h-1.5 shrink-0 bg-gradient-to-r {{ $accent }}"></div>
 
     <div class="flex flex-1 flex-col p-4">
-        <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-100 bg-white shadow-sm ring-1 ring-gray-100 transition-transform duration-300 group-hover:scale-110">
+        <span class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-100 bg-white shadow-sm ring-1 ring-gray-100 transition-transform duration-300 group-hover:scale-110 sm:h-11 sm:w-11">
             @if ($thumbnailPath)
                 <img src="{{ Storage::url($thumbnailPath) }}" alt="{{ $store->name }}" width="44" height="44" loading="lazy" class="h-full w-full object-contain p-1">
             @else
@@ -70,4 +70,9 @@
     </div>
 </div>
 
-@include('public.partials.offer-modal', ['offer' => $offer, 'store' => $store, 'redirectUrl' => $redirectUrl])
+{{-- Pushed to the body-level stack (see layouts.app) — see offer-card.blade.php
+     for why: a [data-reveal] ancestor's transform otherwise contains this
+     fixed-position modal instead of the real viewport. --}}
+@push('modals')
+    @include('public.partials.offer-modal', ['offer' => $offer, 'store' => $store, 'redirectUrl' => $redirectUrl])
+@endpush

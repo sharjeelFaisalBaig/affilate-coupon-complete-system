@@ -54,4 +54,9 @@
     </div>
 </div>
 
-@include('public.partials.offer-modal', ['offer' => $offer, 'store' => $store, 'redirectUrl' => $redirectUrl])
+{{-- Pushed to the body-level stack (see layouts.app) — see offer-card.blade.php
+     for why: a [data-reveal] ancestor's transform otherwise contains this
+     fixed-position modal instead of the real viewport. --}}
+@push('modals')
+    @include('public.partials.offer-modal', ['offer' => $offer, 'store' => $store, 'redirectUrl' => $redirectUrl])
+@endpush

@@ -45,5 +45,10 @@
 
     @include('public.partials.script-injections', ['placement' => 'body_end', 'pageType' => $pageType ?? 'home', 'storeId' => $storeId ?? null])
     {!! $region->body_end_script !!}
+
+    {{-- Rendered at true body level (outside <main> and any [data-reveal]
+         ancestor) so each offer's reveal modal is never trapped inside a
+         transformed containing block — see offer-card.blade.php. --}}
+    @stack('modals')
 </body>
 </html>

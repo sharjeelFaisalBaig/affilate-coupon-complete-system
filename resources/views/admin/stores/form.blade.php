@@ -20,12 +20,14 @@
                     <input type="text" name="name" value="{{ old('name', $store->name) }}" required maxlength="255" data-slug-source
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     <p class="mt-1 text-xs text-gray-400">Optimal length: ~40 characters. Shown exactly as typed — no prefix/suffix added.</p>
+                    @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">Store Slug</label>
                     <input type="text" name="slug" value="{{ old('slug', $store->slug) }}" placeholder="auto-generated from name if left blank" data-slug-preview
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     <p class="mt-1 text-xs text-gray-400">URI slug, e.g. "amazon". Live-previewed from the name above while left blank.</p>
+                    @error('slug') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">Slug Prefix</label>
@@ -76,9 +78,10 @@
                     <img src="{{ Storage::url($store->logo_path) }}" alt="{{ $store->name }}" width="64" height="64" class="mb-2 h-16 w-16 rounded border border-gray-200 object-contain">
                 @endif
                 <input type="file" name="logo" accept="image/*" data-required-width="200" data-required-height="200"
-                       class="block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">
-                <p class="mt-1 text-xs text-gray-400">* Required dimensions: exactly 200x200px.</p>
+                       class="block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">
+                <p class="mt-1 text-xs text-gray-400">* Required dimensions: exactly 200x200px. JPG, PNG or WEBP, up to 1MB.</p>
                 <p data-dimension-check-result class="mt-1 text-xs"></p>
+                @error('logo') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -87,6 +90,7 @@
                     <input type="url" name="affiliate_url" value="{{ old('affiliate_url', $store->affiliate_url) }}" required
                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     <p class="mt-1 text-xs text-gray-400">Used for this store's coupon/deal redirect links.</p>
+                    @error('affiliate_url') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">Expiry Date</label>

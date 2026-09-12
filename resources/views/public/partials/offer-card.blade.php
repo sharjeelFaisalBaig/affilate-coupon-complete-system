@@ -25,7 +25,7 @@
     <div class="flex flex-1 flex-col p-4">
         <div class="flex items-start justify-between gap-3">
             <p class="text-lg font-bold leading-snug text-gray-900">{{ $offer->title }}</p>
-            <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-100 bg-white shadow-sm ring-1 ring-gray-100 transition-transform duration-300 group-hover:scale-110">
+            <span class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-100 bg-white shadow-sm ring-1 ring-gray-100 transition-transform duration-300 group-hover:scale-110 sm:h-11 sm:w-11">
                 @if ($thumbnailPath)
                     <img src="{{ Storage::url($thumbnailPath) }}" alt="{{ $store->name }}" width="44" height="44" loading="lazy" class="h-full w-full object-contain p-1">
                 @else
@@ -82,4 +82,11 @@
     </div>
 </div>
 
-@include('public.partials.offer-modal', ['offer' => $offer, 'store' => $store, 'redirectUrl' => $redirectUrl])
+{{-- Pushed to the body-level stack (see layouts.app) rather than included
+     inline — this card sits inside a [data-reveal] ancestor, and once that
+     ancestor's scroll-reveal transition applies a `transform`, it becomes
+     the containing block for any `position: fixed` descendant, which broke
+     the modal's full-viewport backdrop/sizing. --}}
+@push('modals')
+    @include('public.partials.offer-modal', ['offer' => $offer, 'store' => $store, 'redirectUrl' => $redirectUrl])
+@endpush

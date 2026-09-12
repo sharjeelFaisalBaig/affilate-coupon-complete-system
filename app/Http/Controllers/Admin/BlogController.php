@@ -188,7 +188,7 @@ class BlogController extends Controller
             'route_suffix' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9-]+(\/[a-z0-9-]+)*$/'],
             'excerpt' => ['nullable', 'string', 'max:500'],
             'content' => ['required', 'string'],
-            'featured_image' => ['nullable', 'image', 'max:5120', 'dimensions:width=670,height=300'],
+            'featured_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048', 'dimensions:width=670,height=300'],
             'author_name' => ['nullable', 'string', 'max:255'],
             'published_at' => ['nullable', 'date'],
             'meta_title' => ['nullable', 'string', 'max:255'],
