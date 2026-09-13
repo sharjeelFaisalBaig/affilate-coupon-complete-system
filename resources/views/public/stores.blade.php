@@ -8,7 +8,7 @@
             <form data-ajax-filter-form class="flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                 <div class="w-full sm:w-80">
                     <label class="mb-1 block text-xs font-medium text-gray-500">Category</label>
-                    <select name="category_id" data-select2-enable data-placeholder="All Categories" class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <select name="category_id" data-select2-enable data-instant-filter data-placeholder="All Categories" class="rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         <option value="">All Categories</option>
                         @foreach ($categories as $category)
                             <option value="{{ $category->id }}" @selected($selectedCategoryId == $category->id)>{{ $category->name }}</option>

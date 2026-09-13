@@ -14,7 +14,8 @@ use App\Models\Region;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    $default = Region::where('is_active', true)->orderBy('sort_order')->first();
+    $default = Region::where('is_active', true)->where('is_default', true)->first()
+        ?? Region::where('is_active', true)->orderBy('sort_order')->first();
     abort_if(! $default, 404);
 
     return redirect("/{$default->code}");

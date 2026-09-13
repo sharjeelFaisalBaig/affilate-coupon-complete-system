@@ -10,7 +10,9 @@
         <tbody class="divide-y divide-gray-100">
             @forelse ($stores as $store)
                 <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 font-medium text-gray-900">{{ $store->name }}</td>
+                    <td class="px-4 py-3 font-medium text-gray-900">
+                        <a href="{{ route('admin.stores.edit', $store) }}" data-no-ajax class="hover:text-emerald-600 hover:underline">{{ $store->name }}</a>
+                    </td>
                     <td class="px-4 py-3 text-gray-500">{{ $store->category?->name ?? '—' }}</td>
                     <td class="px-4 py-3 text-right">
                         <a href="{{ $store->urlFor($activeRegion) }}" target="_blank" rel="noopener" class="font-medium text-gray-600 hover:text-gray-800" data-no-ajax>View</a>

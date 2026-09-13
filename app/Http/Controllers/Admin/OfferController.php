@@ -75,6 +75,10 @@ class OfferController extends Controller
             ->whereHas('store', fn ($sq) => $sq->where('region_id', $region->id))
             ->where(fn ($oq) => $oq->where('title', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%"))
             ->when($request->string('scope')->value() === 'featured', fn ($q) => $q->where('is_featured', true))
+            // The main coupon list is store-scoped via this same `store_id`
+            // sibling field — the list itself only re-filters on Search, but
+            // the search box's suggestions still respect the selected store.
+            ->when($request->filled('store_id'), fn ($q) => $q->where('store_id', $request->integer('store_id')))
             ->limit(8)->get();
 
         return response()->json($offers->map(fn ($offer) => [

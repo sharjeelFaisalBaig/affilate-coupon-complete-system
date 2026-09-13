@@ -18,6 +18,7 @@ class StoreDirectoryController extends Controller
 
         $stores = Store::where('region_id', $region->id)->visible()
             ->where('name', 'like', "%{$q}%")
+            ->when($request->filled('category_id'), fn ($sq) => $sq->where('category_id', $request->integer('category_id')))
             ->orderBy('name')->limit(8)->get(['slug', 'name', 'route_prefix', 'route_suffix']);
 
         return response()->json($stores->map(fn ($store) => [

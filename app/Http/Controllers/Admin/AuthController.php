@@ -13,9 +13,7 @@ class AuthController extends Controller
 {
     public function showLogin(): View
     {
-        return view('admin.auth.login', [
-            'regions' => Region::orderBy('sort_order')->get(),
-        ]);
+        return view('admin.auth.login');
     }
 
     public function login(Request $request): RedirectResponse
@@ -23,7 +21,6 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
-            'region_id' => ['required', 'exists:regions,id'],
         ]);
 
         if (! Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']])) {
@@ -37,7 +34,18 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
-        $request->session()->put('admin_active_region_id', (int) $credentials['region_id']);
+
+        // No region picker on login anymore — land in whatever the default
+        // region is (falling back to the first active/any region if one
+        // hasn't been marked default), and let the topbar region-switcher
+        // (already present on every admin page) change it from there.
+        $region = Region::where('is_default', true)->first()
+            ?? Region::where('is_active', true)->orderBy('sort_order')->first()
+            ?? Region::orderBy('sort_order')->first();
+
+        if ($region) {
+            $request->session()->put('admin_active_region_id', $region->id);
+        }
 
         return redirect()->intended(route('admin.dashboard'));
     }

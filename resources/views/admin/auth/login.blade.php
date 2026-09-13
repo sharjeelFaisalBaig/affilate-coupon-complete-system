@@ -31,16 +31,6 @@
             @csrf
 
             <div>
-                <label for="region_id" class="mb-1 block text-sm font-medium text-gray-700">Region</label>
-                <select id="region_id" name="region_id" required
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    @foreach ($regions as $region)
-                        <option value="{{ $region->id }}" @selected(old('region_id') == $region->id)>{{ strtoupper($region->code) }} — {{ $region->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div>
                 <label for="email" class="mb-1 block text-sm font-medium text-gray-700">Email</label>
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">

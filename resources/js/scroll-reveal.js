@@ -7,15 +7,22 @@
  * [data-reveal] children — each gets an increasing transition-delay so a
  * whole row/grid cascades in rather than popping together, capped so a long
  * grid doesn't leave late cards waiting several seconds.
+ *
+ * Exposed as window.initScrollReveal(root) so ajax-filters.js can re-run it
+ * scoped to just-swapped-in content — [data-reveal] starts at opacity:0 in
+ * CSS, and this is the ONLY thing that ever adds `.is-visible`. Without
+ * re-running it after an AJAX results swap, every filtered/paginated card
+ * would sit at opacity:0 forever (found via real click-through testing:
+ * cards were present in the DOM, just permanently invisible).
  */
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('[data-reveal-group]').forEach((group) => {
+function initScrollReveal(root = document) {
+    root.querySelectorAll('[data-reveal-group]').forEach((group) => {
         Array.from(group.querySelectorAll(':scope > [data-reveal]')).forEach((el, index) => {
             el.style.transitionDelay = `${Math.min(index * 70, 420)}ms`;
         });
     });
 
-    const targets = document.querySelectorAll('[data-reveal]');
+    const targets = root.querySelectorAll('[data-reveal]');
     if (!targets.length) return;
 
     if (!('IntersectionObserver' in window)) {
@@ -36,4 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
     targets.forEach((el) => observer.observe(el));
-});
+}
+
+window.initScrollReveal = initScrollReveal;
+
+document.addEventListener('DOMContentLoaded', () => initScrollReveal(document));

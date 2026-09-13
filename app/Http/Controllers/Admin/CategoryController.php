@@ -41,7 +41,7 @@ class CategoryController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where('is_active', $request->string('status') === 'active');
+            $query->where('is_active', $request->string('status')->value() === 'active');
         }
 
         $categories = $query->orderBy('sort_order')->paginate(20)->withQueryString();
@@ -57,6 +57,7 @@ class CategoryController extends Controller
 
         $categories = Category::where('region_id', $region->id)->where('type', self::TYPE)
             ->where('name', 'like', "%{$q}%")
+            ->when($request->filled('status'), fn ($sq) => $sq->where('is_active', $request->string('status')->value() === 'active'))
             ->orderBy('name')->limit(8)->get(['id', 'name']);
 
         return response()->json($categories->map(fn ($category) => [

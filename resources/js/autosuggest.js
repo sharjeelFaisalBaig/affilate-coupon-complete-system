@@ -11,6 +11,14 @@
  * getBoundingClientRect() rather than inserted next to the input in the
  * DOM, so it never affects the surrounding template's layout (several very
  * different form layouts use this across the app).
+ *
+ * Suggestions are scoped to the input's other sibling form fields: every
+ * other non-empty named field in the same <form> (a category <select>, a
+ * status filter, etc.) is sent alongside `q`, so results respect whatever
+ * else is currently selected in that filter form. This applies everywhere,
+ * including admin filter forms — those forms don't auto-submit on select
+ * change (see ajax-filters.js's [data-instant-filter] opt-in), but their
+ * autosuggest dropdown still narrows to match the other selected filters.
  */
 function debounce(fn, delay) {
     let timer;
@@ -64,8 +72,17 @@ function initAutosuggest(input) {
             return;
         }
 
+        const params = new URLSearchParams({ q });
+        const form = input.closest('form');
+        if (form) {
+            for (const [key, value] of new FormData(form).entries()) {
+                if (key === input.name || value === '') continue;
+                params.append(key, value);
+            }
+        }
+
         try {
-            const response = await fetch(`${endpoint}?q=${encodeURIComponent(q)}`, {
+            const response = await fetch(`${endpoint}?${params.toString()}`, {
                 headers: { Accept: 'application/json' },
             });
             if (!response.ok) return;

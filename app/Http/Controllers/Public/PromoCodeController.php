@@ -15,9 +15,11 @@ class PromoCodeController extends Controller
     public function suggest(Request $request, Region $region): \Illuminate\Http\JsonResponse
     {
         $q = $request->string('q')->value();
+        $storeCategoryId = $request->integer('store_category_id');
 
         $offers = Offer::with('store')
-            ->whereHas('store', fn ($sq) => $sq->where('region_id', $region->id)->visible())
+            ->whereHas('store', fn ($sq) => $sq->where('region_id', $region->id)->visible()
+                ->when($storeCategoryId, fn ($csq) => $csq->where('category_id', $storeCategoryId)))
             ->where('is_active', true)
             ->where(fn ($oq) => $oq->where('title', 'like', "%{$q}%")->orWhere('code', 'like', "%{$q}%"))
             ->limit(8)->get();

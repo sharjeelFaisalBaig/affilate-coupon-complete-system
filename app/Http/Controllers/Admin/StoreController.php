@@ -33,7 +33,7 @@ class StoreController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where('is_active', $request->string('status') === 'active');
+            $query->where('is_active', $request->string('status')->value() === 'active');
         }
 
         if ($request->filled('q')) {
@@ -68,6 +68,18 @@ class StoreController extends Controller
             'pending' => $query->where('is_pending', true),
             default => null,
         };
+
+        // The main store list's own category/status filters (sibling fields
+        // in the same form, not a static `scope`) narrow suggestions the
+        // same way — selecting a category/status doesn't re-filter the list
+        // live, but the search box's suggestions still respect it.
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->integer('category_id'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->string('status')->value() === 'active');
+        }
 
         $stores = $query->orderBy('name')->limit(8)->get(['id', 'name']);
 

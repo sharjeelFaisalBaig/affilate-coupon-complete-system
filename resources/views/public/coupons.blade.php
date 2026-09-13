@@ -15,7 +15,7 @@
 
                     <div>
                         <p class="text-xs font-bold uppercase tracking-wide text-gray-900">Filter by Store Category</p>
-                        <select name="store_category_id" data-select2-enable data-placeholder="All Categories" class="mt-2 block w-full rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        <select name="store_category_id" data-select2-enable data-instant-filter data-placeholder="All Categories" class="mt-2 block w-full rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                             <option value="">All Categories</option>
                             @foreach ($storeCategories as $category)
                                 <option value="{{ $category->id }}" @selected($selectedStoreCategoryId == $category->id)>{{ $category->name }}</option>
