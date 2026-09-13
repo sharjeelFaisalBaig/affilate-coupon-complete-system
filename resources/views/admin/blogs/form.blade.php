@@ -73,7 +73,7 @@
             <div>
                 <label class="mb-1 block text-sm font-medium text-gray-700">Featured Image</label>
                 @if ($blog->featured_image)
-                    <img src="{{ Storage::url($blog->featured_image) }}" alt="" width="120" height="68" class="mb-2 h-[68px] w-[120px] rounded border border-gray-200 object-cover">
+                    <img data-live-preview src="{{ Storage::url($blog->featured_image) }}" alt="" width="120" height="68" class="mb-2 h-[68px] w-[120px] rounded border border-gray-200 object-cover">
                 @endif
                 <input type="file" name="featured_image" accept="image/*" data-required-width="670" data-required-height="300"
                        class="block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">

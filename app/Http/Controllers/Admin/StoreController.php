@@ -65,7 +65,9 @@ class StoreController extends Controller
         match ($request->string('scope')->value()) {
             'featured' => $query->where('is_featured', true),
             'popular' => $query->where('is_popular', true),
-            'pending' => $query->where('is_pending', true),
+            // Matches classification()'s pending query — either form of
+            // pending (Store State or the checkbox) belongs in this tab.
+            'pending' => $query->where(fn ($pq) => $pq->where('is_active', false)->orWhere('is_pending', true)),
             default => null,
         };
 
@@ -202,7 +204,13 @@ class StoreController extends Controller
 
         $featured = Store::where('region_id', $region->id)->where('is_featured', true)->with('category')->orderBy('featured_order')->get();
         $popular = Store::where('region_id', $region->id)->where('is_popular', true)->with('category')->orderBy('popular_order')->get();
-        $pending = Store::where('region_id', $region->id)->where('is_pending', true)->with('category')->orderBy('pending_order')->get();
+        // A store is "pending" here if EITHER its Store State is Pending
+        // (is_active false) OR the Pending curation checkbox is on — both
+        // now equally hide it from the frontend (Store::scopeVisible()), so
+        // both equally belong in this list rather than only the checkbox.
+        $pending = Store::where('region_id', $region->id)
+            ->where(fn ($q) => $q->where('is_active', false)->orWhere('is_pending', true))
+            ->with('category')->orderBy('pending_order')->get();
 
         // Featured Deals: every featured offer across every store in the
         // region together, in its own cross-store order — distinct from
@@ -305,7 +313,11 @@ class StoreController extends Controller
         $data['reviews_count'] = $data['reviews_count'] ?? 0;
         $data['is_featured'] = $request->boolean('is_featured');
         $data['is_popular'] = $request->boolean('is_popular');
-        $data['is_pending'] = $request->boolean('is_pending');
+        // No longer a form field — Pending is driven solely by Store State
+        // below now. Deliberately not touched here (vs. reading a checkbox
+        // that no longer exists and always resetting it to false), so any
+        // row already carrying is_pending=true from before this change
+        // keeps it instead of silently losing it on its next save.
         $data['is_active'] = $data['status'] === 'active';
         unset($data['status']);
         $data['robots_index'] = $request->boolean('robots_index');

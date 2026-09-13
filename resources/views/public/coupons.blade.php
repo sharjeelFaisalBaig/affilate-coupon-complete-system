@@ -1,5 +1,9 @@
 @extends('public.layouts.app')
 
+@push('head')
+    @vite(['resources/js/select2-init.js'])
+@endpush
+
 @section('content')
     @include('public.partials.page-header', ['heading' => $heading, 'subheading' => $subheading])
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

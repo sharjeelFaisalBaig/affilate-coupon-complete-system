@@ -215,7 +215,13 @@ function initUnsavedChangesGuard() {
         if (!dirty || submitting) return;
         const link = event.target.closest('a[href]');
         if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
-        if (!window.confirm('You have unsaved changes. Are you sure you want to leave this page?')) {
+        if (window.confirm('You have unsaved changes. Are you sure you want to leave this page?')) {
+            // The user already confirmed via this dialog — the link
+            // navigation that follows would otherwise also fire
+            // beforeunload while `dirty` is still true, popping the
+            // browser's OWN generic prompt right after this one.
+            submitting = true;
+        } else {
             event.preventDefault();
             event.stopImmediatePropagation();
         }

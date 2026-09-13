@@ -25,7 +25,12 @@
     @stack('schema')
 
     @fonts
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/ajax-filters.js', 'resources/js/autosuggest.js', 'resources/js/scroll-reveal.js', 'resources/js/select2-init.js'])
+    {{-- select2-init.js (~156KB, bundles jQuery) is intentionally NOT here —
+         only /stores and /coupons actually render a Select2 field on the
+         public site; every other page (home, blog, store detail, static
+         pages...) pushes nothing and never loads it. Those two pages pull
+         it in themselves via @push('head'). --}}
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/ajax-filters.js', 'resources/js/autosuggest.js', 'resources/js/scroll-reveal.js'])
     @stack('head')
 
     @include('public.partials.script-injections', ['placement' => 'head_end', 'pageType' => $pageType ?? 'home', 'storeId' => $storeId ?? null])

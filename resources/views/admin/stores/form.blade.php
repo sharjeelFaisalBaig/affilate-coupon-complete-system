@@ -75,7 +75,7 @@
             <div>
                 <label class="mb-1 block text-sm font-medium text-gray-700">Store Logo</label>
                 @if ($store->logo_path)
-                    <img src="{{ Storage::url($store->logo_path) }}" alt="{{ $store->name }}" width="64" height="64" class="mb-2 h-16 w-16 rounded border border-gray-200 object-contain">
+                    <img data-live-preview src="{{ Storage::url($store->logo_path) }}" alt="{{ $store->name }}" width="64" height="64" class="mb-2 h-16 w-16 rounded border border-gray-200 object-contain">
                 @endif
                 <input type="file" name="logo" accept="image/*" data-required-width="200" data-required-height="200"
                        class="block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">
@@ -118,7 +118,7 @@
                         <option value="active" @selected($currentStatus === 'active')>Active</option>
                         <option value="pending" @selected($currentStatus === 'pending')>Pending</option>
                     </select>
-                    <p class="mt-1 text-xs text-gray-400">Only Active stores show on the frontend.</p>
+                    <p class="mt-1 text-xs text-gray-400">Only Active stores show on the frontend. A Pending store also lists on the Featured &amp; Popular screen's Pending Stores tab.</p>
                 </div>
                 <label class="flex items-center gap-2">
                     <input type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $store->is_featured))
@@ -130,13 +130,8 @@
                            class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500">
                     <span class="text-sm text-gray-700">Popular Store</span>
                 </label>
-                <label class="flex items-center gap-2">
-                    <input type="checkbox" name="is_pending" value="1" @checked(old('is_pending', $store->is_pending))
-                           class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500">
-                    <span class="text-sm text-gray-700">Pending Store</span>
-                </label>
             </div>
-            <p class="-mt-3 text-xs text-gray-400">Featured/Popular/Pending are independent curation tags for the Featured &amp; Popular screen (a store can carry any combination) — separate from the Store State above, which controls frontend visibility.</p>
+            <p class="-mt-3 text-xs text-gray-400">Featured/Popular are curation tags for the Featured &amp; Popular screen (a store can carry either or both) — they don't affect frontend visibility. Pending is driven solely by Store State above now, not a separate tag.</p>
 
             <fieldset class="rounded-md border border-gray-200 p-4">
                 <legend class="px-1 text-sm font-medium text-gray-700">SEO</legend>

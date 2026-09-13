@@ -15,7 +15,7 @@
             <div>
                 <label class="mb-1 block text-sm font-medium text-gray-700">Header / Footer Logo</label>
                 @if ($settings->logo_path)
-                    <img src="{{ Storage::url($settings->logo_path) }}" alt="" width="120" height="32" class="mb-2 h-8 w-auto object-contain">
+                    <img data-live-preview src="{{ Storage::url($settings->logo_path) }}" alt="" width="120" height="32" class="mb-2 h-8 w-auto object-contain">
                 @endif
                 <input type="file" name="logo" accept="image/*"
                        class="block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">

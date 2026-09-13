@@ -48,6 +48,10 @@ class RegionController extends Controller
             $data['favicon_path'] = $request->file('favicon')->store('regions/favicons', 'public');
         }
 
+        if ($request->hasFile('flag')) {
+            $data['flag_path'] = $request->file('flag')->store('regions/flags', 'public');
+        }
+
         $region = Region::create($data);
 
         $this->seedDefaultsForNewRegion($region);
@@ -79,6 +83,13 @@ class RegionController extends Controller
             $data['favicon_path'] = $request->file('favicon')->store('regions/favicons', 'public');
         }
 
+        if ($request->hasFile('flag')) {
+            if ($region->flag_path) {
+                Storage::disk('public')->delete($region->flag_path);
+            }
+            $data['flag_path'] = $request->file('flag')->store('regions/flags', 'public');
+        }
+
         $region->update($data);
 
         return redirect()->route('admin.regions.index')->with('status', 'Region updated.');
@@ -106,6 +117,10 @@ class RegionController extends Controller
 
         if ($region->favicon_path) {
             Storage::disk('public')->delete($region->favicon_path);
+        }
+
+        if ($region->flag_path) {
+            Storage::disk('public')->delete($region->flag_path);
         }
 
         $region->delete();
@@ -171,6 +186,7 @@ class RegionController extends Controller
             ],
             'name' => ['required', 'string', 'max:255'],
             'favicon' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:512'],
+            'flag' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:512'],
             'head_start_script' => ['nullable', 'string'],
             'head_end_script' => ['nullable', 'string'],
             'body_start_script' => ['nullable', 'string'],

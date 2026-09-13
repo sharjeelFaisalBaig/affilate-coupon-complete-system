@@ -83,13 +83,21 @@ class Store extends Model
     }
 
     /**
-     * Published AND not past its own expiry date (if one is set) — once a
-     * store expires, neither it nor its offers should appear anywhere on
-     * the frontend, mirroring how Offer::isExpired() already gates offers.
+     * Published, not pending, AND not past its own expiry date (if one is
+     * set) — once a store expires, neither it nor its offers should appear
+     * anywhere on the frontend, mirroring how Offer::isExpired() already
+     * gates offers. `is_pending` (the classification checkbox) used to be a
+     * pure curation tag with no effect on visibility — a store could be
+     * "Active" AND flagged Pending and still show publicly, which made
+     * "Pending" meaningless as a state. Pending, in either form (the Store
+     * State select OR this checkbox), now always means hidden from the
+     * frontend — see Admin\StoreController::classification() for the other
+     * half (both forms of pending also always land in the Pending tab).
      */
     public function scopeVisible($query)
     {
         return $query->where('is_active', true)
+            ->where('is_pending', false)
             ->where(fn ($q) => $q->whereNull('expiry_date')->orWhere('expiry_date', '>=', now()->startOfDay()));
     }
 

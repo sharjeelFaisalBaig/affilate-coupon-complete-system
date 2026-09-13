@@ -39,37 +39,37 @@
                         [
                             'label' => 'Categories',
                             'items' => [
-                                ['label' => 'Add Category', 'route' => 'admin.categories.create', 'match' => 'admin.categories.create'],
-                                ['label' => 'All Categories', 'route' => 'admin.categories.index', 'match' => ['admin.categories.index', 'admin.categories.edit']],
+                                ['label' => 'Add Category', 'route' => 'admin.categories.create', 'match' => 'admin.categories.create', 'can' => 'full-admin-access'],
+                                ['label' => 'All Categories', 'route' => 'admin.categories.index', 'match' => ['admin.categories.index', 'admin.categories.edit'], 'can' => 'full-admin-access'],
                             ],
                         ],
                         [
                             'label' => 'Stores',
                             'items' => [
-                                ['label' => 'Add Store', 'route' => 'admin.stores.create', 'match' => 'admin.stores.create'],
-                                ['label' => 'All Stores', 'route' => 'admin.stores.index', 'match' => ['admin.stores.index', 'admin.stores.edit']],
-                                ['label' => 'Featured & Popular', 'route' => 'admin.stores.classification', 'match' => 'admin.stores.classification'],
+                                ['label' => 'Add Store', 'route' => 'admin.stores.create', 'match' => 'admin.stores.create', 'can' => 'manage-stores-coupons'],
+                                ['label' => 'All Stores', 'route' => 'admin.stores.index', 'match' => ['admin.stores.index', 'admin.stores.edit'], 'can' => 'manage-stores-coupons'],
+                                ['label' => 'Featured & Popular', 'route' => 'admin.stores.classification', 'match' => 'admin.stores.classification', 'can' => 'manage-stores-coupons'],
                             ],
                         ],
                         [
                             'label' => 'Coupons',
                             'items' => [
-                                ['label' => 'Add Coupon', 'route' => 'admin.offers.create', 'match' => 'admin.offers.create'],
-                                ['label' => 'All Coupons', 'route' => 'admin.offers.index', 'match' => ['admin.offers.index', 'admin.offers.edit']],
+                                ['label' => 'Add Coupon', 'route' => 'admin.offers.create', 'match' => 'admin.offers.create', 'can' => 'manage-stores-coupons'],
+                                ['label' => 'All Coupons', 'route' => 'admin.offers.index', 'match' => ['admin.offers.index', 'admin.offers.edit'], 'can' => 'manage-stores-coupons'],
                             ],
                         ],
                         [
                             'label' => 'Coupon Features',
                             'items' => [
-                                ['label' => 'Add Coupon Feature', 'route' => 'admin.badges.create', 'match' => 'admin.badges.create'],
-                                ['label' => 'All Coupon Features', 'route' => 'admin.badges.index', 'match' => ['admin.badges.index', 'admin.badges.edit']],
+                                ['label' => 'Add Coupon Feature', 'route' => 'admin.badges.create', 'match' => 'admin.badges.create', 'can' => 'full-admin-access'],
+                                ['label' => 'All Coupon Features', 'route' => 'admin.badges.index', 'match' => ['admin.badges.index', 'admin.badges.edit'], 'can' => 'full-admin-access'],
                             ],
                         ],
                         [
                             'label' => 'Store Suffixes',
                             'items' => [
-                                ['label' => 'Add Store Suffix', 'route' => 'admin.store-suffixes.create', 'match' => 'admin.store-suffixes.create'],
-                                ['label' => 'All Store Suffixes', 'route' => 'admin.store-suffixes.index', 'match' => ['admin.store-suffixes.index', 'admin.store-suffixes.edit']],
+                                ['label' => 'Add Store Suffix', 'route' => 'admin.store-suffixes.create', 'match' => 'admin.store-suffixes.create', 'can' => 'full-admin-access'],
+                                ['label' => 'All Store Suffixes', 'route' => 'admin.store-suffixes.index', 'match' => ['admin.store-suffixes.index', 'admin.store-suffixes.edit'], 'can' => 'full-admin-access'],
                             ],
                         ],
                         [
@@ -80,32 +80,32 @@
                                 // Static Pages are all reached from here, never as
                                 // separate top-level items, so nothing is manageable
                                 // from two different places in the sidebar.
-                                ['label' => 'Pages', 'route' => 'admin.pages-overview.index', 'match' => ['admin.pages-overview.*', 'admin.homepage-sections.*', 'admin.page-settings.*', 'admin.contact-page.*', 'admin.static-pages.*']],
+                                ['label' => 'Pages', 'route' => 'admin.pages-overview.index', 'match' => ['admin.pages-overview.*', 'admin.homepage-sections.*', 'admin.page-settings.*', 'admin.contact-page.*', 'admin.static-pages.*'], 'can' => 'full-admin-access'],
                             ],
                         ],
                         [
                             'label' => 'Blogs',
                             'items' => [
-                                ['label' => 'Blog Categories', 'route' => 'admin.blog-categories.index', 'match' => 'admin.blog-categories.*'],
-                                ['label' => 'Add Blog', 'route' => 'admin.blogs.create', 'match' => 'admin.blogs.create'],
-                                ['label' => 'All Blogs', 'route' => 'admin.blogs.index', 'match' => ['admin.blogs.index', 'admin.blogs.edit']],
+                                ['label' => 'Blog Categories', 'route' => 'admin.blog-categories.index', 'match' => 'admin.blog-categories.*', 'can' => 'manage-blogs'],
+                                ['label' => 'Add Blog', 'route' => 'admin.blogs.create', 'match' => 'admin.blogs.create', 'can' => 'manage-blogs'],
+                                ['label' => 'All Blogs', 'route' => 'admin.blogs.index', 'match' => ['admin.blogs.index', 'admin.blogs.edit'], 'can' => 'manage-blogs'],
                             ],
                         ],
                         [
                             'label' => 'Regions',
                             'items' => [
-                                ['label' => 'Add Region', 'route' => 'admin.regions.create', 'match' => 'admin.regions.create'],
-                                ['label' => 'All Regions', 'route' => 'admin.regions.index', 'match' => ['admin.regions.index', 'admin.regions.edit']],
-                                ['label' => 'Menus', 'route' => 'admin.menus.index', 'match' => 'admin.menus.*'],
-                                ['label' => 'General Settings', 'route' => 'admin.general-settings.edit', 'match' => 'admin.general-settings.*'],
+                                ['label' => 'Add Region', 'route' => 'admin.regions.create', 'match' => 'admin.regions.create', 'can' => 'full-admin-access'],
+                                ['label' => 'All Regions', 'route' => 'admin.regions.index', 'match' => ['admin.regions.index', 'admin.regions.edit'], 'can' => 'full-admin-access'],
+                                ['label' => 'Menus', 'route' => 'admin.menus.index', 'match' => 'admin.menus.*', 'can' => 'full-admin-access'],
+                                ['label' => 'General Settings', 'route' => 'admin.general-settings.edit', 'match' => 'admin.general-settings.*', 'can' => 'full-admin-access'],
                             ],
                         ],
                         [
                             'label' => 'System',
                             'items' => [
-                                ['label' => 'Script Injections', 'route' => 'admin.script-injections.index', 'match' => 'admin.script-injections.*'],
-                                ['label' => 'Affiliate Networks', 'route' => 'admin.affiliate-networks.index', 'match' => 'admin.affiliate-networks.*'],
-                                ['label' => 'Contact Messages', 'route' => 'admin.contact-messages.index', 'match' => 'admin.contact-messages.*'],
+                                ['label' => 'Script Injections', 'route' => 'admin.script-injections.index', 'match' => 'admin.script-injections.*', 'can' => 'full-admin-access'],
+                                ['label' => 'Affiliate Networks', 'route' => 'admin.affiliate-networks.index', 'match' => 'admin.affiliate-networks.*', 'can' => 'full-admin-access'],
+                                ['label' => 'Contact Messages', 'route' => 'admin.contact-messages.index', 'match' => 'admin.contact-messages.*', 'can' => 'full-admin-access'],
                             ],
                         ],
                         [
@@ -188,12 +188,13 @@
 
                 <div class="flex shrink-0 items-center gap-2 sm:gap-4">
                     @if(isset($allRegions) && isset($activeRegion))
-                        <form method="POST" action="{{ route('admin.region.switch') }}">
+                        <form method="POST" action="{{ route('admin.region.switch') }}" class="w-32 sm:w-56">
                             @csrf
-                            <select name="region_id" onchange="this.form.submit()"
-                                    class="w-20 rounded-md border-gray-300 text-xs focus:border-emerald-500 focus:ring-emerald-500 sm:w-auto sm:text-sm">
+                            <select name="region_id" data-select2-enable data-auto-submit
+                                    class="w-full rounded-md border-gray-300 text-xs focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">
                                 @foreach ($allRegions as $r)
-                                    <option value="{{ $r->id }}" @selected($activeRegion->id === $r->id)>{{ strtoupper($r->code) }} — {{ $r->name }}</option>
+                                    <option value="{{ $r->id }}" @selected($activeRegion->id === $r->id)
+                                        @if ($r->flag_path) data-flag="{{ Storage::url($r->flag_path) }}" @endif>{{ strtoupper($r->code) }} — {{ $r->name }}</option>
                                 @endforeach
                             </select>
                         </form>

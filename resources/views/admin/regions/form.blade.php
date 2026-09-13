@@ -37,12 +37,23 @@
             <div>
                 <label class="mb-1 block text-sm font-medium text-gray-700">Favicon</label>
                 @if ($region->favicon_path)
-                    <img src="{{ Storage::url($region->favicon_path) }}" alt="" width="32" height="32" class="mb-2 h-8 w-8 rounded border border-gray-200 object-contain">
+                    <img data-live-preview src="{{ Storage::url($region->favicon_path) }}" alt="" width="32" height="32" class="mb-2 h-8 w-8 rounded border border-gray-200 object-contain">
                 @endif
                 <input type="file" name="favicon" accept="image/*,.ico"
                        class="block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">
                 <p class="mt-1 text-xs text-gray-400">* Optimal size: 32x32px, .ico or .png.</p>
                 @error('favicon') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700">Flag</label>
+                @if ($region->flag_path)
+                    <img data-live-preview src="{{ Storage::url($region->flag_path) }}" alt="" width="24" height="16" class="mb-2 h-4 w-6 rounded-sm border border-gray-200 object-cover">
+                @endif
+                <input type="file" name="flag" accept="image/*" data-preview-class="mb-2 hidden h-4 w-6 rounded-sm border border-gray-200 object-cover"
+                       class="block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">
+                <p class="mt-1 text-xs text-gray-400">* Optimal size: 24x16px (3:2). Shown next to this region in the admin panel's region switcher.</p>
+                @error('flag') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
             @if ($region->exists)

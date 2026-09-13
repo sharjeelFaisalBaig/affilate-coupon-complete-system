@@ -17,7 +17,11 @@ function initImagePreviews() {
         if (!preview) {
             preview = document.createElement('img');
             preview.setAttribute('data-live-preview', '');
-            preview.className = 'mb-2 hidden h-16 w-16 rounded border border-gray-200 object-contain';
+            // A field with no existing image yet (a fresh "Add" form) has no
+            // element to reuse the shape/class of, so this fixed square is
+            // just a reasonable default — data-preview-class overrides it
+            // for fields whose image isn't square (e.g. a wide region flag).
+            preview.className = input.dataset.previewClass || 'mb-2 hidden h-16 w-16 rounded border border-gray-200 object-contain';
             input.before(preview);
         }
 

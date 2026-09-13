@@ -17,7 +17,7 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    public const ROLES = ['superadmin', 'manager'];
+    public const ROLES = ['superadmin', 'manager', 'store_coupon_manager', 'blog_manager'];
 
     /**
      * Get the attributes that should be cast.
@@ -41,5 +41,15 @@ class User extends Authenticatable
     public function isManager(): bool
     {
         return $this->role === 'manager';
+    }
+
+    public function isStoreCouponManager(): bool
+    {
+        return $this->role === 'store_coupon_manager';
+    }
+
+    public function isBlogManager(): bool
+    {
+        return $this->role === 'blog_manager';
     }
 }

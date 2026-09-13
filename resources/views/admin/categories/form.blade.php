@@ -33,7 +33,7 @@
             <div>
                 <label class="mb-1 block text-sm font-medium text-gray-700">Category Image / Icon</label>
                 @if ($category->icon_path)
-                    <img src="{{ Storage::url($category->icon_path) }}" alt="" width="40" height="40" class="mb-2 h-10 w-10 rounded border border-gray-200 object-contain">
+                    <img data-live-preview src="{{ Storage::url($category->icon_path) }}" alt="" width="40" height="40" class="mb-2 h-10 w-10 rounded border border-gray-200 object-contain">
                 @endif
                 <input type="file" name="icon_image" accept="image/*"
                        class="block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200">

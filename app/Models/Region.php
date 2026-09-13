@@ -15,6 +15,7 @@ class Region extends Model
         'code',
         'name',
         'favicon_path',
+        'flag_path',
         'head_start_script',
         'head_end_script',
         'body_start_script',

@@ -39,7 +39,7 @@
             @endphp
             <form data-ajax-filter-form class="flex flex-col items-center gap-4">
                 <div class="flex w-full max-w-xl gap-2">
-                    <input type="search" name="q" value="{{ request('q') }}" placeholder="Search this store's codes..."
+                    <input type="search" name="q" value="{{ request('q') }}" placeholder="Search codes..."
                            class="w-full rounded-md border-gray-300 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     @include('partials.ajax-search-button')
                 </div>
